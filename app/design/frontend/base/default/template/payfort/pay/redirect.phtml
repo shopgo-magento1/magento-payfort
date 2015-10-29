@@ -1,0 +1,144 @@
+<?php
+
+
+
+// Retrieve order
+$_order = Mage::getModel('sales/order');
+$orderId = Mage::getSingleton('checkout/session')->getLastRealOrderId();
+$merchantReference = $orderId;
+$_order->loadByIncrementId($orderId);
+$total = round($_order->getBaseGrandTotal(), 2);
+
+//$shipping_amount = $_order->getShippingAmount();
+//$shipping_amount = str_replace('.', '', $shipping_amount);
+
+$language           = Mage::getStoreConfig('payment/payfort/language');
+$currency           = Mage::getStoreConfig('payment/payfort/currency');
+$merchantIdentifier = Mage::getStoreConfig('payment/payfort/merchant_identifier');
+$accessCode         = Mage::getStoreConfig('payment/payfort/access_code');
+$command            = Mage::getStoreConfig('payment/payfort/command');
+$sandbox_mode       = Mage::getStoreConfig('payment/payfort/sandbox_mode');
+$sha_in_pass_phrase = $this->getData('sha_in_pass_phrase');
+$action_gateway     = $this->getData('action_gateway');
+
+$post = 
+$gateway_post_URL = $action_gateway;
+if($sandbox_mode)
+	$gateway_post_URL = $action_gateway;
+
+if($language == 'no_language') {
+	$language = Mage::app()->getLocale()->getLocaleCode();
+}
+
+/*
+ *
+  String to hash
+  AMOUNT=1500Mysecretsig1875!?CURRENCY=EURMysecretsig1875!?
+  LANGUAGE=en_USMysecretsig1875!?ORDERID=1234Mysecretsig1875!?
+  PSPID=MyPSPIDMysecretsig1875!?
+ *
+ */
+
+$baseCurrencyCode = Mage::app()->getStore()->getBaseCurrencyCode();
+$currentCurrencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
+
+// Convert currency
+if($currency == 'no_currency') {
+	$currency = $currentCurrencyCode;
+	$total = round(Mage::helper('directory')->currencyConvert($total, $baseCurrencyCode, $currentCurrencyCode), 2);
+} else {
+	$total = round(Mage::helper('directory')->currencyConvert($total, $baseCurrencyCode, $currency), 2);
+}
+
+//$total = str_replace('.', '', $total) * 100;
+$total = $total * 100;
+
+//$shipping_amount = round(Mage::helper('directory')->currencyConvert($_order->getShippingAmount(), 'USD', 'SAR'), 2);
+$sha_type = Mage::getStoreConfig('payment/payfort/sha_type');
+
+/*$sha_sign = sha1('AMOUNT=' . $total . $sha_in_pass_phrase . 'CURRENCY=' . $currency . $sha_in_pass_phrase .
+        'LANGUAGE=' . $language . $sha_in_pass_phrase . 'ORDERID=' . $orderId . $sha_in_pass_phrase . 'PSPID=' . $merchant_affiliation_name . $sha_in_pass_phrase);*/
+
+// Replace (-) with (empty) string in hash alg.
+// $sha_sign = hash(str_replace('-', '', $sha_type), 'AMOUNT=' . $total . $sha_in_pass_phrase . 'CURRENCY=' . $currency . $sha_in_pass_phrase .
+        // 'LANGUAGE=' . $language . $sha_in_pass_phrase . 'ORDERID=' . $orderId . $sha_in_pass_phrase . 'PSPID=' . $merchant_affiliation_name . $sha_in_pass_phrase);
+
+$postData = array(
+    'amount'                => $total,
+    'currency'              => $currency,
+    'merchant_identifier'   => Mage::getStoreConfig('payment/payfort/merchant_identifier'),
+    'access_code'           => Mage::getStoreConfig('payment/payfort/access_code'),
+    'merchant_reference'    => $orderId,
+    'customer_email'        => $_order->getCustomerEmail(),
+    //'ch_name'               => $_order->getCustomerName(),
+    'command'               => Mage::getStoreConfig('payment/payfort/command'),
+    'language'              => $language,
+    'return_url'            => Mage::getBaseUrl() . 'payfort/payment/response/'
+);
+
+$shaString = '';
+ksort($postData);
+foreach ($postData as $k=>$v){
+    $shaString .= "$k=$v";
+}
+
+$shaString = $sha_in_pass_phrase . $shaString . $sha_in_pass_phrase;
+$signature = hash(str_replace('-', '', $sha_type),$shaString);
+
+$items_name = array();
+$items_description = array();
+$items_qty = array();
+$items_price = array();
+$items_id = array();
+$items = $_order->getAllItems();
+
+foreach ($items as $item) {
+    $items_name[] = $item->getName();
+    $items_description[] = $item->getDescription();
+    $items_qty[] = $item->getQtyOrdered();
+    //$items_price[] = round(Mage::helper('directory')->currencyConvert(round($item->getPrice(), 2), 'USD', 'SAR'), 2);
+    $items_price[] = round($item->getPrice());
+    $items_id[] = $item->getProductId();
+}
+?>
+<div class="center wrapper">
+	<div id="logo" class="center"></div>
+	<p class="center title"><?php echo $this->__('Redirecting to Payfort ...') ?></p>
+	<form name="payfortpaymentform" id="payfortpaymentform" method="post" action="<?php echo $gateway_post_URL; ?>" id="form1" name="form1">
+		<!-- general parameters -->
+        
+		<?php foreach ($postData as $k => $v):?>
+        <input type="hidden" name="<?php echo $k ?>" value="<?php echo $v ?>">
+        <?php endforeach;?>
+		<input type="hidden" name="signature" value="<?php echo $signature ?>">
+        
+		<input type="submit" value="" id="submit2" name="submit2">
+	</form>
+</div>
+<script type="text/javascript">
+	(function(){
+		setTimeout(function(){
+			document.payfortpaymentform.submit();
+		}, 5000);
+		})();
+</script>
+<style type="text/css">
+#payfortpaymentform {
+	display:none;
+}
+.center {
+    width: 50%;
+    margin: 0 auto;
+}
+#logo {
+	background:url(<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) . 'frontend/base/default/payfort/img/payfort_logo.png' ?>);
+	width: 123px;
+	height: 44px;
+	margin-top:50px;
+
+}
+.title {
+	text-align: center;
+	margin-top:50px;
+}
+</style>
