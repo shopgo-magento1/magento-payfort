@@ -109,12 +109,42 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </sha_out_pass_phrase>
+                        <credit_card translate="label">
+                            <label>Enable Credit \ Debit Card</label>
+                            <frontend_type>select</frontend_type>
+                            <comment>Enable customers to use Credit Cards as a payment method.</comment>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>9</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </credit_card>
+                        <sadad translate="label">
+                            <label>Enable SADAD</label>
+                            <frontend_type>select</frontend_type>
+                            <comment>Enable customers to use SADAD as a payment method.</comment>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </sadad>
+                        <!--<naps translate="label">
+                            <label>Enable NAPS</label>
+                            <frontend_type>select</frontend_type>
+                            <comment>Enable customers to use NAPS as a payment option.</comment>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </naps>-->
                         <sandbox_mode translate="label">
                             <label>Sandbox mode</label>
                             <frontend_type>select</frontend_type>
                             <comment>Testing or live mode.</comment>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>9</sort_order>
+                            <sort_order>11</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -123,7 +153,7 @@
                             <label>More info</label>
                             <frontend_type>note</frontend_type>
 							<frontend_model>payfort/note</frontend_model>
-                            <sort_order>10</sort_order>
+                            <sort_order>12</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -132,7 +162,7 @@
                             <label>Host to Host URL</label>
                             <frontend_type>note</frontend_type>
 							<frontend_model>payfort/note</frontend_model>
-                            <sort_order>11</sort_order>
+                            <sort_order>13</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>

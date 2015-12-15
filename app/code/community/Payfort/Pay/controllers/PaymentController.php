@@ -5,31 +5,40 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
     public function indexAction() {
 		return;
     }
-
+    public function setOptionAction() {
+        if(isset($_GET['payfort_option'])){
+            $_SESSION['payfort_option'] = $_GET['payfort_option'];
+            if ($_SESSION['payfort_option'] == ''){
+                unset($_SESSION['payfort_option']);
+            }
+        }
+    }
+    
 	// The redirect action is triggered when someone places an order
     public function redirectAction() {
 
 		$is_active = Mage::getStoreConfig('payment/payfort/active');
         $test_mode = Mage::getStoreConfig('payment/payfort/sandbox_mode');
-        $merchant_affiliation_name = Mage::getStoreConfig('payment/payfort/merchant_affiliation_name');
+
         $sha_in_pass_phrase = Mage::getStoreConfig('payment/payfort/sha_in_pass_phrase');
         $sha_out_pass_phrase = Mage::getStoreConfig('payment/payfort/sha_out_pass_phrase');
         $action_gateway = '';
 
         if (!$test_mode) {
 			$action_gateway = 'https://checkout.payfort.com/FortAPI/paymentPage';
-            
         } else {
-			$action_gateway =  'https://sbcheckout.payfort.com/FortAPI/paymentPage';
+			$action_gateway = 'https://sbcheckout.payfort.com/FortAPI/paymentPage';
         }
 
         //Loading current layout
         $this->loadLayout();
+        
+        
         //Creating a new block
         $block = $this->getLayout()->createBlock(
 			'Mage_Core_Block_Template', 'payfort_block_redirect', array('template' => 'payfort/pay/redirect.phtml')
         )
-        ->setData('merchant_affiliation_name', $merchant_affiliation_name)
+
         ->setData('sha_in_pass_phrase', $sha_in_pass_phrase)
         ->setData('sha_out_pass_phrase', $sha_out_pass_phrase)
         ->setData('action_gateway', $action_gateway);
@@ -154,7 +163,6 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
 					$invoice->register();
 					$transactionSave = Mage::getModel('core/resource_transaction')->addObject($invoice)->addObject($invoice->getOrder());
 					$transactionSave->save();
-
 					$order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Payfort has accepted the payment.');
 					/** load invoice * */
 					//$invoice = Mage::getModel('sales/order_invoice')->loadByIncrementId($invoiceId);
@@ -164,11 +172,9 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
                 } catch (Mage_Core_Exception $e) {
 					//Mage::throwException(Mage::helper('core')->__('cannot create an invoice !'));
 				}
-
 				$order->sendNewOrderEmail();
 				$order->setEmailSent(true);
 				$order->save();
-
 				if($response_status == 14) {
 					$response_message = $this->__('Your payment is accepted.');
 				} elseif($response_status == 02) {
@@ -176,7 +182,6 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
 				} else {
 					$response_message = $this->__('Unknown response status.');
 				}
-
 				// $this->renderResponse($response_message);
 				// Mage::getSingleton('checkout/session')->setSuccessMessage($response_status_message);
 				Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/success', array('_secure' => true));

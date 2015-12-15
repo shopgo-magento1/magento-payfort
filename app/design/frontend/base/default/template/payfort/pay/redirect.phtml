@@ -21,7 +21,6 @@ $sandbox_mode       = Mage::getStoreConfig('payment/payfort/sandbox_mode');
 $sha_in_pass_phrase = $this->getData('sha_in_pass_phrase');
 $action_gateway     = $this->getData('action_gateway');
 
-$post = 
 $gateway_post_URL = $action_gateway;
 if($sandbox_mode)
 	$gateway_post_URL = $action_gateway;
@@ -75,6 +74,19 @@ $postData = array(
     'language'              => $language,
     'return_url'            => Mage::getBaseUrl() . 'payfort/payment/response/'
 );
+
+$option = isset($_SESSION['payfort_option']) ? $_SESSION['payfort_option'] : '';
+
+$isNaps     = $option == 'NAPS' ? true : false;
+$isSADAD    = $option == 'SADAD' ? true : false;
+
+if ($isSADAD == "true"){
+    $postData['payment_option'] = 'SADAD';
+}
+else if ($isNaps == "true"){
+    $postData['payment_option'] = 'NAPS';
+    $postData['order_description'] = $order_id;
+}
 
 $shaString = '';
 ksort($postData);

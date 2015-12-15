@@ -56,7 +56,7 @@
                 <active>1</active>
                 <order_status>pending</order_status>
                 <model>payfort/pay</model>
-                <title>FORT Payment Method</title>
+                <title>Credit / Debit Card</title>
                 <sha_type>SHA-512</sha_type>
                 <payment_action>sale</payment_action>
                 <allowspecific>0</allowspecific>
