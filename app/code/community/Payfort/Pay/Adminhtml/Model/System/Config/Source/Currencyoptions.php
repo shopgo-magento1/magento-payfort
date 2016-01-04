@@ -17,6 +17,7 @@ class Payfort_Pay_Adminhtml_Model_System_Config_Source_Currencyoptions {
             array('value' => 'SAR', 'label' => Mage::helper('adminhtml')->__('SAR')),
             array('value' => 'KWD', 'label' => Mage::helper('adminhtml')->__('KWD')),
             array('value' => 'SYP', 'label' => Mage::helper('adminhtml')->__('SYP')),
+            array('value' => 'QAR', 'label' => Mage::helper('adminhtml')->__('QAR')),
             array('value' => 'no_currency', 'label' => Mage::helper('adminhtml')->__('Use Default')),
         );
     }

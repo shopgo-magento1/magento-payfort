@@ -27,7 +27,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
         if (!$test_mode) {
 			$action_gateway = 'https://checkout.payfort.com/FortAPI/paymentPage';
         } else {
-			$action_gateway = 'https://sbcheckout.payfort.com/FortAPI/paymentPage';
+			$action_gateway =  'https://sbcheckout.payfort.com/FortAPI/paymentPage';
         }
 
         //Loading current layout
@@ -50,9 +50,10 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
     }
 
     public function responseAction() {
-
-		$orderId = Mage::getSingleton('checkout/session')->getLastRealOrderId();
-        $order = Mage::getModel('sales/order')->loadByIncrementId(Mage::getSingleton('checkout/session')->getLastRealOrderId());
+        
+        $response_params = $this->getRequest()->getParams();
+		$orderId = $response_params['merchant_reference'];
+        $order = Mage::getModel('sales/order')->loadByIncrementId($orderId);
 
         /*
          * $order = Mage::getModel('sales/order')->loadByIncrementId(Mage::getSingleton('checkout/session')->getLastRealOrderId());
@@ -74,7 +75,6 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
 		$response_order_id = $this->getRequest()->getParam('merchant_reference');
 		$response_status = $this->getRequest()->getParam('status');
 		$response_code = $this->getRequest()->getParam('response_code');
-		$response_params = $this->getRequest()->getParams();
         $response_status_message = $response_type;
         
 		uksort($response_params, 'strnatcasecmp');
@@ -116,7 +116,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
 			//Now showing it with rendering of layout
 			$this->renderLayout();
 				// There is a problem in the response we got
-				$this->cancelAction();
+				$this->cancelAction($order);
 				// $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
 				Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
 				Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
@@ -138,6 +138,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
         
         if (substr($response_code,2) == '000'){
             $response_type = 'Success';
+            $response_message = 'Redirecting, please wait...';
         }
         
         switch($response_type):
@@ -146,7 +147,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
 			try {
 				if (!$order->canInvoice()):
 					//Mage::throwException(Mage::helper('core')->__('cannot create an invoice !'));
-					$response_message = $this->__('Error: cannot create an invoice !');
+					//$response_message = $this->__('Error: cannot create an invoice !'); //already created invoice by host to host
 					$this->renderResponse($response_message);
 					return false;
 				else:
@@ -155,7 +156,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
 					$invoice = Mage::getModel('sales/service_order', $order)->prepareInvoice();
 					if (!$invoice->getTotalQty()):
 						//Mage::throwException(Mage::helper('core')->__('cannot create an invoice without products !'));
-						$response_message = $this->__('Error: cannot create an invoice without products !');
+						//$response_message = $this->__('Error: cannot create an invoice without products !'); //already created invoice by host to host
 						$this->renderResponse($response_message);
 						return false;
 					endif;
@@ -189,7 +190,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
 			break;
 			case 'decline':
 				// There is a problem in the response we got
-				$this->cancelAction();
+				$this->cancelAction($order);
 				// $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
 				Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
 				Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
@@ -198,7 +199,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
 			break;
 			case 'exception':
 				// There is a problem in the response we got
-				$this->cancelAction();
+				$this->cancelAction($order);
 				// $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
 				Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
 				Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
@@ -207,7 +208,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
 			break;
 			case 'cancel':
 				// There is a problem in the response we got
-				$this->cancelAction();
+				$this->cancelAction($order);
 				// $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
 				Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
 				Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
@@ -224,13 +225,10 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action {
     }
 
     // The cancel action is triggered when an order is to be cancelled
-    public function cancelAction() {
-        if (Mage::getSingleton('checkout/session')->getLastRealOrderId()) {
-            $order = Mage::getModel('sales/order')->loadByIncrementId(Mage::getSingleton('checkout/session')->getLastRealOrderId());
-            if ($order->getId()) {
-                // Flag the order as 'cancelled' and save it
-                $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true, 'Payfort has declined the payment.')->save();
-            }
+    public function cancelAction($order) {
+        if ($order->getId()) {
+            // Flag the order as 'cancelled' and save it
+            $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true, 'Payfort has declined the payment.')->save();
         }
     }
 

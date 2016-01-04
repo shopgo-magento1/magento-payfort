@@ -13,7 +13,7 @@ $total = round($_order->getBaseGrandTotal(), 2);
 //$shipping_amount = str_replace('.', '', $shipping_amount);
 
 $language           = Mage::getStoreConfig('payment/payfort/language');
-$currency           = Mage::getStoreConfig('payment/payfort/currency');
+//$currency           = Mage::getStoreConfig('payment/payfort/currency');
 $merchantIdentifier = Mage::getStoreConfig('payment/payfort/merchant_identifier');
 $accessCode         = Mage::getStoreConfig('payment/payfort/access_code');
 $command            = Mage::getStoreConfig('payment/payfort/command');
@@ -42,12 +42,12 @@ $baseCurrencyCode = Mage::app()->getStore()->getBaseCurrencyCode();
 $currentCurrencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
 
 // Convert currency
-if($currency == 'no_currency') {
+// if($currency == 'no_currency') {
 	$currency = $currentCurrencyCode;
 	$total = round(Mage::helper('directory')->currencyConvert($total, $baseCurrencyCode, $currentCurrencyCode), 2);
-} else {
-	$total = round(Mage::helper('directory')->currencyConvert($total, $baseCurrencyCode, $currency), 2);
-}
+// } else {
+	// $total = round(Mage::helper('directory')->currencyConvert($total, $baseCurrencyCode, $currency), 2);
+// }
 
 //$total = str_replace('.', '', $total) * 100;
 $total = $total * 100;
@@ -85,7 +85,7 @@ if ($isSADAD == "true"){
 }
 else if ($isNaps == "true"){
     $postData['payment_option'] = 'NAPS';
-    $postData['order_description'] = $order_id;
+    $postData['order_description'] = $orderId;
 }
 
 $shaString = '';

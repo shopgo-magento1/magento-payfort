@@ -37,7 +37,7 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </title>
-                        <currency translate="label">
+                        <!--<currency translate="label">
                             <label>Currency</label>
                             <frontend_type>select</frontend_type>
                             <source_model>payfort_adminhtml/system_config_source_currencyoptions</source_model>
@@ -45,7 +45,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
-                        </currency>
+                        </currency>-->
                         <language translate="label">
                             <label>Language</label>
                             <frontend_type>select</frontend_type>
@@ -129,7 +129,7 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </sadad>
-                        <!--<naps translate="label">
+                        <naps translate="label">
                             <label>Enable NAPS</label>
                             <frontend_type>select</frontend_type>
                             <comment>Enable customers to use NAPS as a payment option.</comment>
@@ -138,7 +138,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
-                        </naps>-->
+                        </naps>
                         <sandbox_mode translate="label">
                             <label>Sandbox mode</label>
                             <frontend_type>select</frontend_type>
