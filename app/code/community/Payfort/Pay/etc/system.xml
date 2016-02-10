@@ -8,7 +8,7 @@
                     <sort_order>670</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
-                    <show_in_store>0</show_in_store>
+                    <show_in_store>1</show_in_store>
                     <expanded>1</expanded>
                     <frontend_class>complex</frontend_class>
 <!--
@@ -24,19 +24,35 @@
                             <label>Enabled</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>1</sort_order>
+                            <sort_order>10</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Crdit Card Title</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>2</sort_order>
+                            <sort_order>11</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
+                            <show_in_store>1</show_in_store>
                         </title>
+                        <sadad_title translate="label">
+                            <label>Sadad Title</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>12</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </sadad_title>
+                        <naps_title translate="label">
+                            <label>Naps Title</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>13</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </naps_title>
                         <!--<currency translate="label">
                             <label>Currency</label>
                             <frontend_type>select</frontend_type>
@@ -50,7 +66,7 @@
                             <label>Language</label>
                             <frontend_type>select</frontend_type>
                             <source_model>payfort_adminhtml/system_config_source_languageoptions</source_model>
-                            <sort_order>4</sort_order>
+                            <sort_order>20</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -59,7 +75,7 @@
                             <label>Merchant Identifier</label>
                             <frontend_type>text</frontend_type>
                             <comment>Merchant Identifier</comment>
-                            <sort_order>5</sort_order>
+                            <sort_order>30</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -68,7 +84,7 @@
                             <label>Access Code</label>
                             <frontend_type>text</frontend_type>
                             <comment>Access Code</comment>
-                            <sort_order>5</sort_order>
+                            <sort_order>40</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -78,7 +94,7 @@
                             <frontend_type>select</frontend_type>
                             <comment>The Hash algorithm will be used.</comment>
                             <source_model>payfort_adminhtml/system_config_source_shaoptions</source_model>
-                            <sort_order>6</sort_order>
+                            <sort_order>50</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -88,7 +104,7 @@
                             <frontend_type>select</frontend_type>
                             <comment>Command</comment>
                             <source_model>payfort_adminhtml/system_config_source_commandoptions</source_model>
-                            <sort_order>6</sort_order>
+                            <sort_order>60</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -96,7 +112,7 @@
                         <sha_in_pass_phrase translate="label">
                             <label>Request SHA phrase</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>7</sort_order>
+                            <sort_order>70</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -104,7 +120,7 @@
                         <sha_out_pass_phrase translate="label">
                             <label>Response SHA phrase</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>8</sort_order>
+                            <sort_order>80</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -114,7 +130,7 @@
                             <frontend_type>select</frontend_type>
                             <comment>Enable customers to use Credit Cards as a payment method.</comment>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>9</sort_order>
+                            <sort_order>90</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -124,7 +140,7 @@
                             <frontend_type>select</frontend_type>
                             <comment>Enable customers to use SADAD as a payment method.</comment>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>10</sort_order>
+                            <sort_order>100</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -134,7 +150,7 @@
                             <frontend_type>select</frontend_type>
                             <comment>Enable customers to use NAPS as a payment option.</comment>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>10</sort_order>
+                            <sort_order>110</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -144,7 +160,7 @@
                             <frontend_type>select</frontend_type>
                             <comment>Testing or live mode.</comment>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>11</sort_order>
+                            <sort_order>110</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -153,7 +169,7 @@
                             <label>More info</label>
                             <frontend_type>note</frontend_type>
 							<frontend_model>payfort/note</frontend_model>
-                            <sort_order>12</sort_order>
+                            <sort_order>120</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -162,7 +178,7 @@
                             <label>Host to Host URL</label>
                             <frontend_type>note</frontend_type>
 							<frontend_model>payfort/note</frontend_model>
-                            <sort_order>13</sort_order>
+                            <sort_order>130</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>

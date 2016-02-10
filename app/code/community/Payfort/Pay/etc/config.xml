@@ -57,6 +57,8 @@
                 <order_status>pending</order_status>
                 <model>payfort/pay</model>
                 <title>Credit / Debit Card</title>
+                <sadad_title>SADAD</sadad_title>
+                <naps_title>NAPS</naps_title>
                 <sha_type>SHA-512</sha_type>
                 <payment_action>sale</payment_action>
                 <allowspecific>0</allowspecific>

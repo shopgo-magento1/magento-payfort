@@ -9,14 +9,14 @@
     <?php if ($sadadEnabled):?>
     <dt>
     <input id="sadad" value="payfort" type="radio" name="payment[method]" title="SADAD" onclick="jQuery.ajax({url:'<?php echo Mage::getBaseUrl();?>payfort/payment/setOption/?payfort_option=SADAD'});" class="radio" autocomplete="off">
-    <label onclick="jQuery(this).prev().click();" for="">SADAD</label>
+    <label onclick="jQuery(this).prev().click();" for=""><?php echo Mage::getStoreConfig('payment/payfort/sadad_title')?></label>
     </dt>
     <?php endif;?>
     
     <?php if ($napsEnabled):?>
     <dt>
     <input id="naps" value="payfort" type="radio" name="payment[method]" title="NAPS" onclick="jQuery.ajax({url:'<?php echo Mage::getBaseUrl();?>payfort/payment/setOption/?payfort_option=NAPS'});" class="radio" autocomplete="off">
-    <label onclick="jQuery(this).prev().click();" for="">NAPS</label>
+    <label onclick="jQuery(this).prev().click();" for=""><?php echo Mage::getStoreConfig('payment/payfort/naps_title')?></label>
     </dt>
     <?php endif;?>
 <?php endif;?>
