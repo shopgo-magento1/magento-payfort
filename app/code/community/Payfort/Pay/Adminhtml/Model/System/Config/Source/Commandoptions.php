@@ -10,8 +10,8 @@ class Payfort_Pay_Adminhtml_Model_System_Config_Source_Commandoptions {
      */
     public function toOptionArray() {
         return array(
-            array('value' => 'AUTHORIZATION', 'label' => Mage::helper('adminhtml')->__('AUTHORIZATION')),
-            array('value' => 'PURCHASE', 'label' => Mage::helper('adminhtml')->__('PURCHASE')),
+            array('value' => 'AUTHORIZATION', 'label' => Mage::helper('payfort')->__('AUTHORIZATION')),
+            array('value' => 'PURCHASE', 'label' => Mage::helper('payfort')->__('PURCHASE')),
         );
     }
 

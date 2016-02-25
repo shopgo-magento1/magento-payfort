@@ -2,22 +2,18 @@
 
 class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 {
-
-    private $_gatewayHost        = 'https://checkout.payfort.com/';
-    private $_gatewaySandboxHost = 'https://sbcheckout.payfort.com/';
-    
     public function indexAction()
     {
         return;
     }
 
+    
     public function setOptionAction()
     {
+        
+        $payentMethod = Mage::getSingleton('checkout/session')->getData('payfort_option');
         if (isset($_GET['payfort_option'])) {
-            $_SESSION['payfort_option'] = $_GET['payfort_option'];
-            if ($_SESSION['payfort_option'] == '') {
-                unset($_SESSION['payfort_option']);
-            }
+            Mage::getSingleton('checkout/session')->setData('payfort_option', $_GET['payfort_option']);
         }
     }
 
@@ -28,7 +24,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $is_active = Mage::getStoreConfig('payment/payfort/active');
         $test_mode = Mage::getStoreConfig('payment/payfort/sandbox_mode');
 
-        $gatewayUrl = $test_mode ? $this->_gatewaySandboxHost.'FortAPI/paymentPage' : $this->_gatewayHost.'FortAPI/paymentPage';
+        $gatewayUrl = Mage::helper('payfort/data')->getGatewayUrl('redirection');
 
         //Loading current layout
         $this->loadLayout();
@@ -38,7 +34,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $_order->loadByIncrementId($orderId);
         $baseCurrencyCode    = Mage::app()->getStore()->getBaseCurrencyCode();
         $currentCurrencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
-        $orderAmount         = $this->_convertFortAmount($_order->getBaseGrandTotal(), $baseCurrencyCode, $currentCurrencyCode);
+        $orderAmount         = Mage::helper('payfort/data')->convertFortAmount($_order->getBaseGrandTotal(), $baseCurrencyCode, $currentCurrencyCode);
         $currency            = $currentCurrencyCode;
                 
         $language = Mage::getStoreConfig('payment/payfort/language');
@@ -55,10 +51,10 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'customer_email'      => $_order->getCustomerEmail(),
             'command'             => Mage::getStoreConfig('payment/payfort/command'),
             'language'            => $language,
-            'return_url'          => Mage::getBaseUrl() . 'payfort/payment/response/',
+            'return_url'          => Mage::getBaseUrl() . 'payfort/payment/response'
         );
 
-        $payfort_option   = isset($_SESSION['payfort_option']) ? $_SESSION['payfort_option'] : '';
+        $payfort_option   = Mage::getSingleton('checkout/session')->getData('payfort_option');
         $isNaps  = $payfort_option == 'NAPS' ? true : false;
         $isSADAD = $payfort_option == 'SADAD' ? true : false;
 
@@ -70,16 +66,26 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             $gatewayParams['order_description'] = $orderId;
         }
 
-        $signature                  = $this->_calculateSignature($gatewayParams, 'request');
+        $signature                  = Mage::helper('payfort/data')->calculateSignature($gatewayParams, 'request');
         $gatewayParams['signature'] = $signature;
 
         //Creating a new block
-        $block = $this->getLayout()->createBlock(
+        if(!$isNaps && !$isSADAD && Mage::getStoreConfig('payment/payfort/integrationType') == 'merchantPage'){
+            $merchantPageParams = $this->getMerchantPageData();
+            $block = $this->getLayout()->createBlock(
+                        'Mage_Core_Block_Template', 'payfort_block_redirect', array('template' => 'payfort/pay/merchant-page.phtml')
+                )
+                ->setData('gatewayParams', $merchantPageParams['params'])
+                ->setData('gatewayUrl', $merchantPageParams['url']);
+        }
+        else{
+            $block = $this->getLayout()->createBlock(
                         'Mage_Core_Block_Template', 'payfort_block_redirect', array('template' => 'payfort/pay/redirect.phtml')
                 )
                 ->setData('gatewayParams', $gatewayParams)
                 ->setData('gatewayUrl', $gatewayUrl);
-
+        }
+        
         $this->getLayout()->getBlock('content')->append($block);
 
         //Now showing it with rendering of layout
@@ -91,6 +97,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 
         $response_params = $this->getRequest()->getParams();
         $orderId         = $response_params['merchant_reference'];
+        //$orderId         = Mage::getSingleton('checkout/session')->getLastRealOrderId();
         $order           = Mage::getModel('sales/order')->loadByIncrementId($orderId);
 
         /*
@@ -107,7 +114,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 
         $sha_in_pass_phrase      = Mage::getStoreConfig('payment/payfort/sha_in_pass_phrase');
         $sha_out_pass_phrase     = Mage::getStoreConfig('payment/payfort/sha_out_pass_phrase');
-        $params_not_included     = array('signature');
+        $params_not_included     = array('signature', 'route');
         $response_type           = $this->getRequest()->getParam('response_message');
         $signature               = $this->getRequest()->getParam('signature');
         $response_order_id       = $this->getRequest()->getParam('merchant_reference');
@@ -121,7 +128,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 unset($responseGatewayParams[$k]);
             }
         }
-        $responseSignature    = $this->_calculateSignature($responseGatewayParams, 'response');
+        $responseSignature    = Mage::helper('payfort/data')->calculateSignature($responseGatewayParams, 'response');
         
         $error  = false;
         $status = "";
@@ -129,7 +136,12 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         // check the signature
         if (strtolower($responseSignature) !== strtolower($signature)) {
 
-            $response_message = $this->__('Invalid response signature.');
+            if(!empty($response_type)) {
+                $response_message = $response_type;
+            }
+            else{
+                $response_message = $this->__('Invalid response signature.');
+            }
 
             $this->loadLayout();
             //Creating a new block
@@ -145,7 +157,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             // There is a problem in the response we got
             $this->cancelAction($order);
             // $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
-            Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
+            Mage::getSingleton('checkout/session')->setErrorMessage($response_message);
             Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
             // $this->renderResponse($response_message);
             return false;
@@ -153,7 +165,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 
         //$response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
 
-
+        
         if (($response_status != 12 && $response_status != 02) || substr($response_code, 2) != '000') {
             // $response_message = $this->__($response_status_message);
             // $this->renderResponse($response_message);
@@ -164,56 +176,34 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 
         if (substr($response_code, 2) == '000') {
             $response_type    = 'Success';
-            $response_message = 'Redirecting, please wait...';
-        }
-
+            $response_message = $this->__('Redirecting, please wait...');
+        }      
         switch ($response_type):
             case 'Success':
-                /** trying to create invoice * */
-                try {
-                    if (!$order->canInvoice()):
-                        //Mage::throwException(Mage::helper('core')->__('cannot create an invoice !'));
-                        //$response_message = $this->__('Error: cannot create an invoice !'); //already created invoice by host to host
-                        $this->renderResponse($response_message);
-                        return false;
-                    else:
-                        /** create invoice  * */
-                        //$invoiceId = Mage::getModel('sales/order_invoice_api')->create($order->getIncremenetId(), array());
-                        $invoice = Mage::getModel('sales/service_order', $order)->prepareInvoice();
-                        if (!$invoice->getTotalQty()):
-                            //Mage::throwException(Mage::helper('core')->__('cannot create an invoice without products !'));
-                            //$response_message = $this->__('Error: cannot create an invoice without products !'); //already created invoice by host to host
-                            $this->renderResponse($response_message);
-                            return false;
-                        endif;
-                        $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE);
-                        $invoice->register();
-                        $transactionSave = Mage::getModel('core/resource_transaction')->addObject($invoice)->addObject($invoice->getOrder());
-                        $transactionSave->save();
-                        $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Payfort has accepted the payment.');
-                    /** load invoice * */
-                    //$invoice = Mage::getModel('sales/order_invoice')->loadByIncrementId($invoiceId);
-                    /** pay invoice * */
-                    //$invoice->capture()->save();
-                    endif;
-                } catch (Mage_Core_Exception $e) {
-                    //Mage::throwException(Mage::helper('core')->__('cannot create an invoice !'));
-                }
-                $order->sendNewOrderEmail();
-                $order->setEmailSent(true);
-                $order->save();
-                if ($response_status == 14) {
-                    $response_message = $this->__('Your payment is accepted.');
-                }
-                elseif ($response_status == 02) {
-                    $response_message = $this->__('Your payment is authorized.');
-                }
-                else {
-                    $response_message = $this->__('Unknown response status.');
-                }
+                list($success, $response_message) = $this->_successOrder($response_params, $order, $response_message);
                 // $this->renderResponse($response_message);
                 // Mage::getSingleton('checkout/session')->setSuccessMessage($response_status_message);
-                Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/success', array('_secure' => true));
+                
+                if($success) {
+                    if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                        echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/success').'"</script>';
+                        exit;
+                    }
+                    else{
+                        Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/success', array('_secure' => true));
+                    }
+                }
+                else{
+                    Mage::getSingleton('checkout/session')->setErrorMessage($response_message);
+                    if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                        echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/success').'"</script>';
+                        exit;
+                    }
+                    else{
+                        $this->renderResponse($response_message);
+                        //Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
+                    }
+                }
                 return;
                 break;
             case 'decline':
@@ -221,7 +211,13 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 $this->declineAction($order);
                 // $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
                 Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
-                Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
+                if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                    echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/failure').'"</script>';
+                    exit;
+                }
+                else{
+                    Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
+                }
                 // $this->renderResponse($response_message);
                 return;
                 break;
@@ -230,7 +226,13 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 $this->cancelAction($order);
                 // $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
                 Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
-                Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
+                if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                    echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/failure').'"</script>';
+                    exit;
+                }
+                else{
+                    Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
+                }
                 // $this->renderResponse($response_message);
                 return;
                 break;
@@ -239,18 +241,128 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 $this->cancelAction($order);
                 // $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
                 Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
-                Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
+                if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                    echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/failure').'"</script>';
+                    exit;
+                }
+                else{
+                    Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
+                }
                 // $this->renderResponse($response_message);
                 return;
                 break;
             default:
                 $response_message = $this->__('Response Unknown');
-                $this->renderResponse($response_message);
+                Mage::getSingleton('checkout/session')->setErrorMessage($response_message);
+                if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                    echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/success').'"</script>';
+                    exit;
+                }
+                else{
+                    $this->renderResponse($response_message);
+                }
                 return;
                 break;
         endswitch;
     }
 
+    public function merchantPageResponseAction() 
+    {
+        $response_params = $this->getRequest()->getParams();
+        $orderId         = $response_params['merchant_reference'];
+        $order           = Mage::getModel('sales/order')->loadByIncrementId($orderId);
+        
+        
+        $params_not_included     = array('signature', 'route');
+        $signature               = $this->getRequest()->getParam('signature');
+        $response_code           = $this->getRequest()->getParam('response_code');
+        $response_type           = $this->getRequest()->getParam('response_message');
+        $response_status_message = $response_type;
+        $response_message        = '';
+        
+        $responseGatewayParams = $response_params;
+        foreach($responseGatewayParams as $k => $v) {
+            if (in_array($k, $params_not_included)) {
+                unset($responseGatewayParams[$k]);
+            }
+        }
+        $responseSignature    = Mage::helper('payfort/data')->calculateSignature($responseGatewayParams, 'response');
+        $success = true;
+        
+        if (strtolower($responseSignature) !== strtolower($signature)) {
+            $success = false;
+            if(!empty($response_type)) {
+                $response_message = $response_type;
+            }
+            else{
+                $response_message = $this->__('Invalid response signature.');
+            }
+            
+        }
+        elseif (substr($response_code, 2) != '000') {
+            $success = false;
+            $response_message = $response_type;
+        }
+        else{
+            //get payfort notification
+            $success = true;
+            $host2HostParams = $this->merchantPageNotifyFort($response_params, $order);
+            if(!$host2HostParams) {
+                $success = false;
+                $response_message = $this->__('Invalid response parameters.');
+            }
+            else {
+                $responseGatewayParams = $host2HostParams;
+                $signature             = $host2HostParams['signature'];
+                foreach($responseGatewayParams as $k => $v) {
+                    if (in_array($k, $params_not_included)) {
+                        unset($responseGatewayParams[$k]);
+                    }
+                }
+                $responseSignature    = Mage::helper('payfort/data')->calculateSignature($responseGatewayParams, 'response');
+                if (strtolower($responseSignature) !== strtolower($signature)) {
+                    $success = false;
+                    $response_message = $this->__('Invalid response signature.');
+                }
+                else{
+                    $response_code    = $host2HostParams['response_code'];
+                    if($response_code == '20064' && isset($host2HostParams['3ds_url'])) {
+                        $success = true;
+                        header('location:'.$host2HostParams['3ds_url']);
+                        exit;
+                    }
+                    else{
+                        if (substr($response_code, 2) != '000'){
+                            $success = false;
+                            $response_message = $host2HostParams['response_message'];
+                        }
+                        else {
+                            list($success, $response_message) = $this->_successOrder($host2HostParams, $order, $response_message);
+                            // $this->renderResponse($response_message);
+                            // Mage::getSingleton('checkout/session')->setSuccessMessage($response_status_message);
+                            if($success) {
+                                echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/success').'"</script>';
+                            }
+                            else{
+                                Mage::getSingleton('checkout/session')->setErrorMessage($response_message);
+                                echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/success').'"</script>';
+                            }
+                            exit;
+                        }
+                    }
+                }
+            }
+        }
+        if(!$success) {
+            $this->declineAction($order);
+            // $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
+            Mage::getSingleton('checkout/session')->setErrorMessage($response_message);
+            //Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
+            echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/failure').'"</script>';
+            exit;
+        }
+    }
+    
     // The cancel action is triggered when an order is to be cancelled
     public function cancelAction($order)
     {
@@ -260,9 +372,9 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         }
     }
 
-    public function declineAction($order) {
+    public function declineAction($order) 
+    {
         $session = Mage::getSingleton('checkout/session');
-        $cart = Mage::getSingleton('checkout/cart');
         //$session->setQuoteId($session->getPaypalStandardQuoteId(true));
         //if ($session->getLastRealOrderId()) {
         try {
@@ -277,17 +389,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 } catch (Mage_Core_Exception $e) {
                     Mage::logException($e);
                 }
-                $items = $order->getItemsCollection();
-                foreach ($items as $item) {
-                    try {
-                        $cart->addOrderItem($item);
-                    } catch (Mage_Core_Exception $e) {
-                        $session->addError($this->__($e->getMessage()));
-                        Mage::logException($e);
-                        continue;
-                    }
-                }
-                $cart->save();
+                $this->refillCart($order);
                 //$session->addError($this->__('Payfort has declined the payment.'));
             }
         } catch (Mage_Core_Exception $e) {
@@ -299,6 +401,75 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         //$this->_redirect('checkout/cart');
     }
     
+    public function refillCart($order) 
+    {
+        $session = Mage::getSingleton('checkout/session');
+        $cart = Mage::getSingleton('checkout/cart');
+        if($order->getId()){
+            $items = $order->getItemsCollection();
+            foreach ($items as $item) {
+                try {
+                    $cart->addOrderItem($item);
+                } catch (Mage_Core_Exception $e) {
+                    $session->addError($this->__($e->getMessage()));
+                    Mage::logException($e);
+                    continue;
+                }
+            }
+            $cart->save();
+        }
+    }
+    
+    private function _successOrder($fortParams ,$order, $response_message) {
+        $success = true;
+        try {
+            /** trying to create invoice * */
+            if (!$order->canInvoice()):
+                $response_message = Mage::helper('core')->__('cannot create an invoice !'); //already created invoice by host to host
+                $success = false;
+                Mage::throwException(Mage::helper('core')->__('cannot create an invoice !'));
+            else:
+                /** create invoice  * */
+                //$invoiceId = Mage::getModel('sales/order_invoice_api')->create($order->getIncremenetId(), array());
+                $invoice = Mage::getModel('sales/service_order', $order)->prepareInvoice();
+                if (!$invoice->getTotalQty()):
+                    $response_message = Mage::helper('core')->__('cannot create an invoice without products !'); //already created invoice by host to host
+                    $success = false;
+                    Mage::throwException(Mage::helper('core')->__('cannot create an invoice without products !'));
+                endif;
+                if($success){
+                    $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE);
+                    $invoice->register();
+                    $transactionSave = Mage::getModel('core/resource_transaction')->addObject($invoice)->addObject($invoice->getOrder());
+                    $transactionSave->save();
+                    $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Payfort has accepted the payment.');
+                }
+            /** load invoice * */
+            //$invoice = Mage::getModel('sales/order_invoice')->loadByIncrementId($invoiceId);
+            /** pay invoice * */
+            //$invoice->capture()->save();
+            endif;
+        } catch (Mage_Core_Exception $e) {
+            //Mage::throwException(Mage::helper('core')->__('cannot create an invoice !'));
+        }
+        if($success) {
+            $order->sendNewOrderEmail();
+            $order->setEmailSent(true);
+            $order->save();
+            $response_status = $fortParams['status'];
+            if ($response_status == 14) {
+                $response_message = $this->__('Your payment is accepted.');
+            }
+            elseif ($response_status == 02) {
+                $response_message = $this->__('Your payment is authorized.');
+            }
+            else {
+                $response_message = $this->__('Unknown response status.');
+            }
+        }
+        
+        return array($success, $response_message);
+    }
     public function successAction()
     {
         /**/
@@ -318,82 +489,101 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         //Now showing it with rendering of layout
         $this->renderLayout();
     }
-
-    public function testAction()
+    
+    public function getMerchantPageDataAction() 
     {
+        $merchantPageData = Mage::helper('payfort/data')->getMerchantPageData();
+        $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($merchantPageData));
+    }
+    
+    public function merchantPageCancelAction() 
+    {
+        $checkoutSession = Mage::getSingleton('checkout/session');
+        $cart    = Mage::getSingleton('checkout/cart');
+        $orderId = $checkoutSession->getLastRealOrderId();
         
+        if(!empty($orderId)) {
+            $order   = Mage::getModel('sales/order')->loadByIncrementId($orderId);
+            $this->cancelAction($order);
+            $this->refillCart($order);
+        }
+        
+        $checkoutSession->addError($this->__('You have canceled the payment, please try again.'));
+        //$checkoutSession->setErrorMessage('You have canceled the payment, please try again.');
+        Mage::app()->getResponse()->setRedirect(Mage::getModel('core/url')->getUrl('checkout/cart/index'))
+        ->sendResponse();
+        exit;
+        //Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/index', array('_secure' => true));
     }
-
-    /**
-     * Convert Amount with dicemal points
-     * @param decimal $amount
-     * @param string $baseCurrencyCode
-     * @param string  $currentCurrencyCode
-     * @return decimal
-     */
-    private function _convertFortAmount($amount, $baseCurrencyCode, $currentCurrencyCode)
+    
+    private function merchantPageNotifyFort($fortParams, $order) 
     {
-
-        $new_amount     = 0;
-        $decimal_points = $this->_getCurrencyDecimalPoint($currentCurrencyCode);
-        $new_amount     = round($amount, $decimal_points);
-        $new_amount     = round(Mage::helper('directory')->currencyConvert($new_amount, $baseCurrencyCode, $currentCurrencyCode), 2);
-        $new_amount     = $new_amount * (pow(10, $decimal_points));
-        return $new_amount;
-    }
-
-    /**
-     * 
-     * @param string $currency
-     * @param integer 
-     */
-    private function _getCurrencyDecimalPoint($currency)
-    {
-        $decimalPoint  = 2;
-        $arrCurrencies = array(
-            'JOD' => 3,
-            'KWD' => 3,
-            'OMR' => 3,
-            'TND' => 3,
-            'BHD' => 3,
-            'LYD' => 3,
-            'IQD' => 3,
+        //send host to host
+        $order_id = $order->getId();
+        $baseCurrencyCode    = Mage::app()->getStore()->getBaseCurrencyCode();//base_currency_code
+        $currentCurrencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();//order_currency_code
+        $currency            = $currentCurrencyCode;
+        $language = Mage::getStoreConfig('payment/payfort/language');
+        if ($language == 'no_language') {
+            $language = Mage::app()->getLocale()->getLocaleCode();
+        }
+        $postData = array(
+            'merchant_reference'    => $fortParams['merchant_reference'].'tkn',
+            'access_code'           => Mage::getStoreConfig('payment/payfort/access_code'),
+            'command'               => Mage::getStoreConfig('payment/payfort/command'),
+            'merchant_identifier'   => Mage::getStoreConfig('payment/payfort/merchant_identifier'),
+            'customer_ip'           => $order->getData('remote_ip'),
+            'amount'                => Mage::helper('payfort/data')->convertFortAmount($order->getGrandTotal(), $baseCurrencyCode, $currentCurrencyCode),
+            'currency'              => $currency,
+            'customer_email'        => $order->getData('customer_email'),
+            'customer_name'         => trim($order->getData('customer_firstname').' '.$order->getData('customer_lastname')),
+            'token_name'            => $fortParams['token_name'],
+            'language'              => $language,
+            'return_url'            => Mage::getBaseUrl() . 'payfort/payment/response',
         );
-        if (isset($arrCurrencies[$currency])) {
-            $decimalPoint = $arrCurrencies[$currency];
-        }
-        return $decimalPoint;
-    }
-
-    /**
-     * calculate fort signature
-     * @param array $arr_data
-     * @param sting $sign_type request or response
-     * @return string fort signature
-     */
-    private function _calculateSignature($arr_data, $sign_type = 'request')
-    {
-        $sha_in_pass_phrase  = Mage::getStoreConfig('payment/payfort/sha_in_pass_phrase');
-        $sha_out_pass_phrase = Mage::getStoreConfig('payment/payfort/sha_out_pass_phrase');
-        $sha_type = Mage::getStoreConfig('payment/payfort/sha_type');
-        $sha_type = str_replace('-', '', $sha_type);
+        //calculate request signature
+        $signature    = Mage::helper('payfort/data')->calculateSignature($postData, 'response');
+        $postData['signature'] = $signature;
         
-        $shaString = '';
+        $gatewayUrl = Mage::helper('payfort/data')->getGatewayUrl('notificationApi');
+        
+        //open connection
+        $ch = curl_init();
+        
+        //set the url, number of POST vars, POST data
+        $useragent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0";
+        curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json;charset=UTF-8',
+                //'Accept: application/json, application/*+json',
+                //'Connection:keep-alive'
+        ));
+        curl_setopt($ch, CURLOPT_URL, $gatewayUrl);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_ENCODING, "compress, gzip");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // allow redirects		
+        //curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // return into a variable
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0); // The number of seconds to wait while trying to connect
+        //curl_setopt($ch, CURLOPT_TIMEOUT, Yii::app()->params['apiCallTimeout']); // timeout in seconds
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
 
-        ksort($arr_data);
-        foreach ($arr_data as $k => $v) {
-            $shaString .= "$k=$v";
-        }
+        $response = curl_exec($ch);
+        
+        $response_data = array();
 
-        if ($sign_type == 'request') {
-            $shaString = $sha_in_pass_phrase . $shaString . $sha_in_pass_phrase;
+        //parse_str($response, $response_data);
+        curl_close($ch);
+            
+        
+        $array_result    = json_decode($response, true);
+        
+        if(!$response || empty($array_result)) {
+            return false;
         }
-        else {
-            $shaString = $sha_out_pass_phrase . $shaString . $sha_out_pass_phrase;
-        }
-        $signature = hash($sha_type, $shaString);
-
-        return $signature;
+        return $array_result;
     }
-
 }

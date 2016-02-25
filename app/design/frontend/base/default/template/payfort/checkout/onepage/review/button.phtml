@@ -1,0 +1,47 @@
+<?php
+$pfHelper = Mage::helper("payfort/data");
+?>
+<button type="submit" title="<?php echo $this->__('Place Order') ?>" class="button btn-checkout" id="button-confirm" onclick="review.save()"><span><span><?php echo $this->__('Place Order') ?></span></span></button>
+<form style="display:none" name="payfort_payment_form" id="payfort_payment_form" method="post">
+</form>
+<input type="hidden" id="payfort_cancel_url" value="<?php echo Mage::getUrl('payfort/payment/merchantPageCancel')?>"/>
+<script type="text/javascript">
+//<![CDATA[
+Review.prototype.save = function() {
+    if (checkout.loadWaiting!=false) return;
+    checkout.setLoadWaiting('review');
+    var params = Form.serialize(payment.form);
+    params.save = true;
+    var request = new Ajax.Request(
+        this.saveUrl,
+        {
+            method:'post',
+            parameters:params,
+            onComplete: function(transport) {
+                if (transport && transport.responseText) {
+                    try{
+                        response = eval('(' + transport.responseText + ')');
+                    }
+                    catch (e) {
+                        response = {};
+                    }
+                    if (response.error_messages) {
+                        checkout.setLoadWaiting(false);
+                    }
+                }
+            },
+            onSuccess: function(response){
+                checkout.setLoadWaiting(false);
+                //get iframe params
+                submitMerchantPage('<?php echo Mage::getUrl('payfort/payment/getMerchantPageData');?>');
+                return;
+                //this.onSave;
+            },
+            onFailure: checkout.ajaxFailure.bind(checkout)
+        }
+    );
+}
+//]]>
+</script>
+
+

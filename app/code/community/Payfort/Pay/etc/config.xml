@@ -49,6 +49,17 @@
                 </connection>
             </payfort_read>
         </resources>
+        <!--<events>
+            <checkout_submit_all_after>
+                <observers>
+                    <payfort>
+                        <type>singleton</type>
+                        <class>Payfort_Pay_Model_Observer</class>
+                        <method>checkoutSubmitAllAfter</method>
+                    </payfort>
+                </observers>
+            </checkout_submit_all_after>
+        </events>-->
     </global>
     <default>
         <payment>
@@ -63,10 +74,20 @@
                 <payment_action>sale</payment_action>
                 <allowspecific>0</allowspecific>
                 <sort_order>1</sort_order>
+                <integration_type>redirection</integration_type>
             </payfort>
         </payment>
     </default>
     <frontend>
+        <translate>
+            <modules>
+                <Payfort_Pay>
+                    <files>
+                        <default>Payfort_Pay.csv</default>
+                    </files>
+                </Payfort_Pay>
+            </modules>
+        </translate>
         <secure_url>
             <pay>/payfort</pay>
         </secure_url>
@@ -82,9 +103,20 @@
         <layout>
             <updates>
                 <payfort>
-                    <file>payfort/payfort.xml</file>
+                    <file>payfort/pay.xml</file>
                 </payfort>
             </updates>
         </layout>
     </frontend>
+    <adminhtml>
+        <translate>
+            <modules>
+                <Payfort_Pay>
+                    <files>
+                        <default>Payfort_Pay.csv</default>
+                    </files>
+                </Payfort_Pay>
+            </modules>
+        </translate>
+    </adminhtml>
 </config>
