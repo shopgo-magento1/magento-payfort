@@ -6,7 +6,7 @@ $gatewayUrl    = $this->getData('gatewayUrl');
 <div class="center wrapper">
     <div id="logo" class="center"></div>
     <p class="center title"><?php echo $this->__('Redirecting to Payfort ...') ?></p>
-    <form name="payfortpaymentform" id="payfortpaymentform" method="post" action="<?php echo $gatewayUrl; ?>" id="form1" name="form1">
+    <form name="payfortpaymentform" id="payfortpaymentform" method="post" action="<?php echo $gatewayUrl; ?>">
         <!-- general parameters -->
         <?php foreach ($gatewayParams as $k => $v): ?>
             <input type="hidden" name="<?php echo $k ?>" value="<?php echo $v ?>">

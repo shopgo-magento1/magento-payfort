@@ -2,6 +2,8 @@
 
 class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
 
+    const PAYFORT_FORT_LOG_FILE = 'payfortfort.log';
+    
     private $_gatewayHost        = 'https://checkout.payfort.com/';
     private $_gatewaySandboxHost = 'https://sbcheckout.payfort.com/';
     //private $_gatewaySandboxHost = 'https://checkout.fortstg.com/';
@@ -147,11 +149,15 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
             return array('url' => $gatewayUrl, 'params' => $gatewayParams);
     }
     
-    public function isMerchantPageMethod() {
-        $useMerchantPage = Mage::getStoreConfig('payment/payfort/integration_type') == 'merchantPage' ? true : false;
-
-        $payfort_option = Mage::getSingleton('checkout/session')->getData('payfort_option');
-        if($useMerchantPage && empty($payfort_option)) {
+    public function isMerchantPageMethod($order = '') {
+        $useMerchantPage = Mage::getStoreConfig('payment/payfortcc/integration_type') == 'merchantPage' ? true : false;
+        if(!empty($order)) {
+            $paymentCode = $order->getPayment()->getMethodInstance()->getCode();
+        }
+        else{
+            $paymentCode = Mage::getSingleton('checkout/session')->getQuote()->getPayment()->getMethodInstance()->getCode();
+        }
+        if($useMerchantPage && $paymentCode == Mage::getModel('payfort/payment_cc')->getCode()) {
             return true;
         }
         return false;
@@ -174,5 +180,16 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
         }
 
         return '';
+    }
+    
+    /**
+     * Log the error on the disk
+     */
+    public function log($messages, $forceDebug = false) {
+        $debugMode = Mage::getStoreConfig('payment/payfort/debug_mode');
+        if(!$debugMode && !$forceLog) {
+            return;
+        }
+        Mage::log($messages, null, self::PAYFORT_FORT_LOG_FILE, true);
     }
 }

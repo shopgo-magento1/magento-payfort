@@ -4,7 +4,7 @@
         <payment>
             <groups>
                 <payfort translate="label" module="payfort">
-                    <label>FORT Payment Method</label>
+                    <label>PayFort (Global Configuration)</label>
                     <sort_order>670</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
@@ -25,34 +25,10 @@
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>10</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                         </active>
-                        <title translate="label">
-                            <label>Crdit Card Title</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>11</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </title>
-                        <sadad_title translate="label">
-                            <label>Sadad Title</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>12</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </sadad_title>
-                        <naps_title translate="label">
-                            <label>Naps Title</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>13</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </naps_title>
                         <!--<currency translate="label">
                             <label>Currency</label>
                             <frontend_type>select</frontend_type>
@@ -125,46 +101,16 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </sha_out_pass_phrase>
-                        <credit_card translate="label">
-                            <label>Enable Credit \ Debit Card</label>
+                        <debug_mode translate="label">
+                            <label>Debug Mode</label>
                             <frontend_type>select</frontend_type>
-                            <comment>Enable customers to use Credit Cards as a payment method.</comment>
+                            <comment>Log file path: var/log/payfortfort.log</comment>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>90</sort_order>
+                            <sort_order>101</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
-                        </credit_card>
-                        <integration_type translate="label">
-                            <label>Integration Type</label>
-                            <frontend_type>select</frontend_type>
-                            <comment>Credit \ Debit Card Integration Type</comment>
-                            <source_model>payfort_adminhtml/system_config_source_integrationtypeoptions</source_model>
-                            <sort_order>91</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </integration_type>
-                        <sadad translate="label">
-                            <label>Enable SADAD</label>
-                            <frontend_type>select</frontend_type>
-                            <comment>Enable customers to use SADAD as a payment method.</comment>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>100</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </sadad>
-                        <naps translate="label">
-                            <label>Enable NAPS</label>
-                            <frontend_type>select</frontend_type>
-                            <comment>Enable customers to use NAPS as a payment option.</comment>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>110</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </naps>
+                        </debug_mode>
                         <sandbox_mode translate="label">
                             <label>Sandbox mode</label>
                             <frontend_type>select</frontend_type>
@@ -214,6 +160,127 @@
                         </return_url>-->
                     </fields>
                 </payfort>
+                <payfortcc translate="label" module="payfort">
+                    <label>PayFort Credit / Debit Cards Payment Method</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>671</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <expanded>0</expanded>
+                    <frontend_class>complex</frontend_class>
+                    <fields>
+                        <active translate="label">
+                            <label>Enabled</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </active>
+                        <sort_order translate="label">
+                            <label>Sort order</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </sort_order>
+                        <title translate="label">
+                            <label>Title</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </title>
+                        <integration_type translate="label">
+                            <label>Integration Type</label>
+                            <frontend_type>select</frontend_type>
+                            <comment>Credit \ Debit Card Integration Type</comment>
+                            <source_model>payfort_adminhtml/system_config_source_integrationtypeoptions</source_model>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </integration_type>
+                    </fields>
+                </payfortcc>
+                <payfortsadad translate="label" module="payfort">
+                    <label>PayFort Sadad Payment Method</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>672</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <expanded>0</expanded>
+                    <frontend_class>complex</frontend_class>
+                    <fields>
+                        <active translate="label">
+                            <label>Enabled</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </active>
+                        <sort_order translate="label">
+                            <label>Sort order</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </sort_order>
+                        <title translate="label">
+                            <label>Title</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </title>
+                    </fields>
+                </payfortsadad>
+                <payfortnaps translate="label" module="payfort">
+                    <label>PayFort NAPS Payment Method</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>673</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <expanded>0</expanded>
+                    <frontend_class>complex</frontend_class>
+                    <fields>
+                        <active translate="label">
+                            <label>Enabled</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </active>
+                        <sort_order translate="label">
+                            <label>Sort order</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </sort_order>
+                        <title translate="label">
+                            <label>Title</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </title>
+                    </fields>
+                </payfortnaps>
             </groups>
         </payment>
     </sections>

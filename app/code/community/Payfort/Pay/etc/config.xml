@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Payfort_Pay>
-            <version>1.0.1</version>
+            <version>1.1.0</version>
         </Payfort_Pay>
     </modules>
     <global>
@@ -60,22 +60,50 @@
                 </observers>
             </checkout_submit_all_after>
         </events>-->
+        <events>
+            <checkout_submit_all_after>
+                <observers>
+                    <payfort_fort_save_order_after_submit>
+                        <class>Payfort_Pay_Model_Observer</class>
+                        <method>saveOrderAfterSubmit</method>
+                    </payfort_fort_save_order_after_submit>
+                </observers>
+            </checkout_submit_all_after>
+        </events>
     </global>
     <default>
         <payment>
             <payfort>
-                <active>1</active>
+                <active>0</active>
                 <order_status>pending</order_status>
                 <model>payfort/pay</model>
-                <title>Credit / Debit Card</title>
-                <sadad_title>SADAD</sadad_title>
-                <naps_title>NAPS</naps_title>
                 <sha_type>SHA-512</sha_type>
                 <payment_action>sale</payment_action>
                 <allowspecific>0</allowspecific>
                 <sort_order>1</sort_order>
-                <integration_type>redirection</integration_type>
             </payfort>
+            <payfortcc>
+                <active>0</active>
+                <model>payfort/payment_cc</model>
+                <order_status>1</order_status>
+                <allowspecific>0</allowspecific>
+                <title>Credit / Debit Card</title>
+                <integration_type>redirection</integration_type>
+            </payfortcc>
+            <payfortsadad>
+                <active>0</active>
+                <model>payfort/payment_sadad</model>
+                <order_status>1</order_status>
+                <allowspecific>0</allowspecific>
+                <title>SADAD</title>
+            </payfortsadad>
+            <payfortnaps>
+                <active>0</active>
+                <model>payfort/payment_naps</model>
+                <order_status>1</order_status>
+                <allowspecific>0</allowspecific>
+                <title>NAPS</title>
+            </payfortnaps>
         </payment>
     </default>
     <frontend>

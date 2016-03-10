@@ -54,24 +54,29 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'return_url'          => Mage::getBaseUrl() . 'payfort/payment/response'
         );
 
-        $payfort_option   = Mage::getSingleton('checkout/session')->getData('payfort_option');
-        $isNaps  = $payfort_option == 'NAPS' ? true : false;
-        $isSADAD = $payfort_option == 'SADAD' ? true : false;
+        $payment_method = $_order->getPayment()->getMethodInstance()->getCode();
+        
+        $isNaps  = $payment_method == Mage::getModel('payfort/payment_naps')->getCode() ? true : false;
+        $isSADAD = $payment_method == Mage::getModel('payfort/payment_sadad')->getCode() ? true : false;
 
-        if ($isSADAD == "true") {
+        if ($isSADAD) {
             $gatewayParams['payment_option'] = 'SADAD';
         }
-        else if ($isNaps == "true") {
+        else if ($isNaps) {
             $gatewayParams['payment_option']    = 'NAPS';
             $gatewayParams['order_description'] = $orderId;
         }
 
         $signature                  = Mage::helper('payfort/data')->calculateSignature($gatewayParams, 'request');
         $gatewayParams['signature'] = $signature;
-
+        
         //Creating a new block
-        if(!$isNaps && !$isSADAD && Mage::getStoreConfig('payment/payfort/integrationType') == 'merchantPage'){
-            $merchantPageParams = $this->getMerchantPageData();
+        if(!$isNaps && !$isSADAD && Mage::getStoreConfig('payment/payfortcc/integration_type') == 'merchantPage'){
+            $this->getLayout()->getBlock('head')->addLinkRel('stylesheet', 'https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css');
+            $this->getLayout()->getBlock('head')->addCss('css/payfort/merchant-page.css');
+            $this->getLayout()->getBlock('head')->addJs('payfort/checkout-submit.js');
+            $merchantPageParams = Mage::helper('payfort/data')->getMerchantPageData();
+            
             $block = $this->getLayout()->createBlock(
                         'Mage_Core_Block_Template', 'payfort_block_redirect', array('template' => 'payfort/pay/merchant-page.phtml')
                 )
@@ -96,6 +101,8 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
     {
 
         $response_params = $this->getRequest()->getParams();
+        $payfortHelper = Mage::helper('payfort/data');
+        Mage::helper('payfort/data')->log(print_r($response_params, 1), null, $payfortHelper::PAYFORT_FORT_LOG_FILE, true);
         $orderId         = $response_params['merchant_reference'];
         //$orderId         = Mage::getSingleton('checkout/session')->getLastRealOrderId();
         $order           = Mage::getModel('sales/order')->loadByIncrementId($orderId);
@@ -136,13 +143,8 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         // check the signature
         if (strtolower($responseSignature) !== strtolower($signature)) {
 
-            if(!empty($response_type)) {
-                $response_message = $response_type;
-            }
-            else{
-                $response_message = $this->__('Invalid response signature.');
-            }
-
+            $response_message = $this->__('Invalid response signature.');
+            Mage::helper('payfort/data')->log(sprintf('Invalid Signature. Calculated Signature: %1s, Response Signature: %2s', $signature, $responseSignature), null, $payfortHelper::PAYFORT_FORT_LOG_FILE, true);
             $this->loadLayout();
             //Creating a new block
             $block = $this->getLayout()->createBlock(
@@ -183,26 +185,12 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 list($success, $response_message) = $this->_successOrder($response_params, $order, $response_message);
                 // $this->renderResponse($response_message);
                 // Mage::getSingleton('checkout/session')->setSuccessMessage($response_status_message);
-                
-                if($success) {
-                    if(Mage::helper('payfort/data')->isMerchantPageMethod()){
-                        echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/success').'"</script>';
-                        exit;
-                    }
-                    else{
-                        Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/success', array('_secure' => true));
-                    }
+                if(Mage::helper('payfort/data')->isMerchantPageMethod($order)){
+                    echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/success').'"</script>';
+                    exit;
                 }
                 else{
-                    Mage::getSingleton('checkout/session')->setErrorMessage($response_message);
-                    if(Mage::helper('payfort/data')->isMerchantPageMethod()){
-                        echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/success').'"</script>';
-                        exit;
-                    }
-                    else{
-                        $this->renderResponse($response_message);
-                        //Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/failure', array('_secure' => true));
-                    }
+                    Mage_Core_Controller_Varien_Action::_redirect('checkout/onepage/success', array('_secure' => true));
                 }
                 return;
                 break;
@@ -211,7 +199,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 $this->declineAction($order);
                 // $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
                 Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
-                if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                if(Mage::helper('payfort/data')->isMerchantPageMethod($order)){
                     echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/failure').'"</script>';
                     exit;
                 }
@@ -226,7 +214,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 $this->cancelAction($order);
                 // $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
                 Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
-                if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                if(Mage::helper('payfort/data')->isMerchantPageMethod($order)){
                     echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/failure').'"</script>';
                     exit;
                 }
@@ -241,7 +229,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 $this->cancelAction($order);
                 // $response_status_message = Mage::helper('payfort/data')->getResponseCodeDescription($response_status);
                 Mage::getSingleton('checkout/session')->setErrorMessage($response_status_message);
-                if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                if(Mage::helper('payfort/data')->isMerchantPageMethod($order)){
                     echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/failure').'"</script>';
                     exit;
                 }
@@ -254,7 +242,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             default:
                 $response_message = $this->__('Response Unknown');
                 Mage::getSingleton('checkout/session')->setErrorMessage($response_message);
-                if(Mage::helper('payfort/data')->isMerchantPageMethod()){
+                if(Mage::helper('payfort/data')->isMerchantPageMethod($order)){
                     echo '<script>window.top.location.href = "'.Mage::getUrl('checkout/onepage/success').'"</script>';
                     exit;
                 }
@@ -269,6 +257,8 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
     public function merchantPageResponseAction() 
     {
         $response_params = $this->getRequest()->getParams();
+        $payfortHelper = Mage::helper('payfort/data');
+        Mage::helper('payfort/data')->log(print_r($response_params, 1), null, $payfortHelper::PAYFORT_FORT_LOG_FILE, true);
         $orderId         = $response_params['merchant_reference'];
         $order           = Mage::getModel('sales/order')->loadByIncrementId($orderId);
         
@@ -291,12 +281,8 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         
         if (strtolower($responseSignature) !== strtolower($signature)) {
             $success = false;
-            if(!empty($response_type)) {
-                $response_message = $response_type;
-            }
-            else{
-                $response_message = $this->__('Invalid response signature.');
-            }
+            $response_message = $this->__('Invalid response signature.');
+            Mage::helper('payfort/data')->log(sprintf('Invalid Signature. Calculated Signature: %1s, Response Signature: %2s', $responseSignature, $signature), null, $payfortHelper::PAYFORT_FORT_LOG_FILE, true);
             
         }
         elseif (substr($response_code, 2) != '000') {
@@ -310,8 +296,10 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             if(!$host2HostParams) {
                 $success = false;
                 $response_message = $this->__('Invalid response parameters.');
+                Mage::helper('payfort/data')->log('Invalid response parameters.', null, $payfortHelper::PAYFORT_FORT_LOG_FILE, true);
             }
             else {
+                Mage::helper('payfort/data')->log(print_r($host2HostParams, 1), null, $payfortHelper::PAYFORT_FORT_LOG_FILE, true);
                 $responseGatewayParams = $host2HostParams;
                 $signature             = $host2HostParams['signature'];
                 foreach($responseGatewayParams as $k => $v) {
@@ -323,6 +311,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
                 if (strtolower($responseSignature) !== strtolower($signature)) {
                     $success = false;
                     $response_message = $this->__('Invalid response signature.');
+                    Mage::helper('payfort/data')->log(sprintf('Invalid Signature. Calculated Signature: %1s, Response Signature: %2s', $responseSignature, $signature), null, $payfortHelper::PAYFORT_FORT_LOG_FILE, true);
                 }
                 else{
                     $response_code    = $host2HostParams['response_code'];
@@ -528,7 +517,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             $language = Mage::app()->getLocale()->getLocaleCode();
         }
         $postData = array(
-            'merchant_reference'    => $fortParams['merchant_reference'].'tkn',
+            'merchant_reference'    => $fortParams['merchant_reference'],
             'access_code'           => Mage::getStoreConfig('payment/payfort/access_code'),
             'command'               => Mage::getStoreConfig('payment/payfort/command'),
             'merchant_identifier'   => Mage::getStoreConfig('payment/payfort/merchant_identifier'),
@@ -542,7 +531,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'return_url'            => Mage::getBaseUrl() . 'payfort/payment/response',
         );
         //calculate request signature
-        $signature    = Mage::helper('payfort/data')->calculateSignature($postData, 'response');
+        $signature    = Mage::helper('payfort/data')->calculateSignature($postData, 'request');
         $postData['signature'] = $signature;
         
         $gatewayUrl = Mage::helper('payfort/data')->getGatewayUrl('notificationApi');

@@ -1,15 +1,10 @@
 <?xml version="1.0"?>
-<layout>
+<layout>    
     <checkout_onepage_index translate="label">
         <reference name="head">
-            <block type="core/text" name="font-awesome">
-                <action method="setText"><text><![CDATA[<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" id="font-awesome">]]></text></action>
-            </block>
-            <action method="addItem">
-                <type>js</type>
-                <name>payfort/checkout-submit.js</name>
-                <params/>
-            </action>
+            <action method="addLinkRel"><rel>stylesheet</rel><href>https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css</href></action>
+            <action method="addCss"><stylesheet>css/payfort/merchant-page.css</stylesheet></action>
+            <action method="addJs"><script>payfort/checkout-submit.js</script></action>
         </reference>
     </checkout_onepage_index>
     <checkout_onepage_review translate="label">
