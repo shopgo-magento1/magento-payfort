@@ -37,11 +37,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $orderAmount         = Mage::helper('payfort/data')->convertFortAmount($_order->getBaseGrandTotal(), $baseCurrencyCode, $currentCurrencyCode);
         $currency            = $currentCurrencyCode;
                 
-        $language = Mage::getStoreConfig('payment/payfort/language');
-        if ($language == 'no_language') {
-            $language = Mage::app()->getLocale()->getLocaleCode();
-        }
-
+        $language = Mage::helper('payfort/data')->getLanguage();
         $gatewayParams = array(
             'amount'              => $orderAmount,
             'currency'            => $currency,
@@ -51,7 +47,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'customer_email'      => $_order->getCustomerEmail(),
             'command'             => Mage::getStoreConfig('payment/payfort/command'),
             'language'            => $language,
-            'return_url'          => Mage::getBaseUrl() . 'payfort/payment/response'
+            'return_url'          => Mage::helper('payfort/data')->getReturnUrl('payfort/payment/response')
         );
 
         $payment_method = $_order->getPayment()->getMethodInstance()->getCode();
@@ -512,10 +508,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $baseCurrencyCode    = Mage::app()->getStore()->getBaseCurrencyCode();//base_currency_code
         $currentCurrencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();//order_currency_code
         $currency            = $currentCurrencyCode;
-        $language = Mage::getStoreConfig('payment/payfort/language');
-        if ($language == 'no_language') {
-            $language = Mage::app()->getLocale()->getLocaleCode();
-        }
+        $language = Mage::helper('payfort/data')->getLanguage();
         $postData = array(
             'merchant_reference'    => $fortParams['merchant_reference'],
             'access_code'           => Mage::getStoreConfig('payment/payfort/access_code'),
@@ -528,7 +521,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'customer_name'         => trim($order->getData('customer_firstname').' '.$order->getData('customer_lastname')),
             'token_name'            => $fortParams['token_name'],
             'language'              => $language,
-            'return_url'            => Mage::getBaseUrl() . 'payfort/payment/response',
+            'return_url'            => Mage::helper('payfort/data')->getReturnUrl('payfort/payment/response'),
         );
         //calculate request signature
         $signature    = Mage::helper('payfort/data')->calculateSignature($postData, 'request');

@@ -125,10 +125,7 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
     }
     
     public function getMerchantPageData() {
-            $language = Mage::getStoreConfig('payment/payfort/language');
-            if ($language == 'no_language') {
-                $language = Mage::app()->getLocale()->getLocaleCode();
-            }
+            $language = $this->getLanguage();
             $_order              = Mage::getModel('sales/order');
             $orderId             = Mage::getSingleton('checkout/session')->getLastRealOrderId();
             $_order->loadByIncrementId($orderId);
@@ -138,7 +135,7 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
                 'merchant_reference'  => $orderId,
                 'service_command'     => 'TOKENIZATION',
                 'language'            => $language,
-                'return_url'          => Mage::getBaseUrl() . 'payfort/payment/merchantPageResponse',
+                'return_url'          => $this->getReturnUrl('payfort/payment/merchantPageResponse'),
             );
             //calculate request signature
             $signature = $this->calculateSignature($gatewayParams, 'request');
@@ -191,5 +188,32 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
             return;
         }
         Mage::log($messages, null, self::PAYFORT_FORT_LOG_FILE, true);
+    }
+    
+    public function getReturnUrl($path) {
+        if (Mage::app()->getStore()->isFrontUrlSecure() 
+            && Mage::app()->getRequest()->isSecure()
+        ) {
+            // current page is https
+            return Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK, true) . $path;
+        }
+        else {
+            // current page is http
+            return Mage::getBaseUrl() . $path;
+        }
+    }
+    
+    public function getLanguage() {
+        $language = Mage::getStoreConfig('payment/payfort/language');
+        if ($language == 'no_language') {
+            $language = Mage::app()->getLocale()->getLocaleCode();
+        }
+        if(substr($language, 0, 2) == 'ar') {
+            $language = 'ar';
+        }
+        else{
+            $language = 'en';
+        }
+        return $language;
     }
 }
