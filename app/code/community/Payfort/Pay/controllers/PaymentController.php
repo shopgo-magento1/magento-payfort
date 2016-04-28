@@ -117,7 +117,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
 
         $sha_in_pass_phrase      = Mage::getStoreConfig('payment/payfort/sha_in_pass_phrase');
         $sha_out_pass_phrase     = Mage::getStoreConfig('payment/payfort/sha_out_pass_phrase');
-        $params_not_included     = array('signature', 'route');
+        $params_not_included     = array('signature', 'route', '___store');
         $response_type           = $this->getRequest()->getParam('response_message');
         $signature               = $this->getRequest()->getParam('signature');
         $response_order_id       = $this->getRequest()->getParam('merchant_reference');
@@ -259,7 +259,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $order           = Mage::getModel('sales/order')->loadByIncrementId($orderId);
         
         
-        $params_not_included     = array('signature', 'route');
+        $params_not_included     = array('signature', 'route', '___store');
         $signature               = $this->getRequest()->getParam('signature');
         $response_code           = $this->getRequest()->getParam('response_code');
         $response_type           = $this->getRequest()->getParam('response_message');
@@ -504,6 +504,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
     private function merchantPageNotifyFort($fortParams, $order) 
     {
         //send host to host
+        $payfortHelper = Mage::helper('payfort/data');
         $order_id = $order->getId();
         $baseCurrencyCode    = Mage::app()->getStore()->getBaseCurrencyCode();//base_currency_code
         $currentCurrencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();//order_currency_code
@@ -528,7 +529,7 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
         $postData['signature'] = $signature;
         
         $gatewayUrl = Mage::helper('payfort/data')->getGatewayUrl('notificationApi');
-        
+        Mage::helper('payfort/data')->log('Merchant Page Notify Request Params : '.print_r($postData, 1), null, $payfortHelper::PAYFORT_FORT_LOG_FILE, true);
         //open connection
         $ch = curl_init();
         
