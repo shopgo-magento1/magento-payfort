@@ -21,4 +21,4 @@ Note: please make sure the dir [Magento1 root folder]/var/connect is writable.
 
 `v1.1.3`
 
-- Fix signature missmatch issue if the customer name is empty.
+- Fix signature mismatch issue if the customer name is empty.
