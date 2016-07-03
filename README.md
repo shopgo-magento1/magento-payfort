@@ -17,7 +17,7 @@ This extension is customizable as you can configure it to meet your needs.
 Note: please make sure the dir [Magento1 root folder]/var/connect is writable.
 
 
-## Release Notes
+## Changelog
 
 `v1.1.3`
 
