@@ -15,3 +15,11 @@ Install
 2. Click on Browse... Button then choose FORT_Payment_Gateway-X.X.X.tgz Then Click upload.
 
 Note: please make sure the dir [Magento1 root folder]/var/connect is writable.
+
+
+Release Notes
+=============
+
+git tag -a v0.0.8 --cleanup=whitespace
+
+- Fix signature missmatch issue if the customer name is empty.
