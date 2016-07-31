@@ -184,7 +184,7 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
      */
     public function log($messages, $forceDebug = false) {
         $debugMode = Mage::getStoreConfig('payment/payfort/debug_mode');
-        if(!$debugMode && !$forceLog) {
+        if(!$debugMode && !$forceDebug) {
             return;
         }
         Mage::log($messages, null, self::PAYFORT_FORT_LOG_FILE, true);

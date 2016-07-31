@@ -515,15 +515,18 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'access_code'           => Mage::getStoreConfig('payment/payfort/access_code'),
             'command'               => Mage::getStoreConfig('payment/payfort/command'),
             'merchant_identifier'   => Mage::getStoreConfig('payment/payfort/merchant_identifier'),
-            'customer_ip'           => $order->getData('remote_ip'),
+            'customer_ip'           => Mage::helper('core/http')->getRemoteAddr(),//$order->getData('remote_ip')
             'amount'                => Mage::helper('payfort/data')->convertFortAmount($order->getGrandTotal(), $baseCurrencyCode, $currentCurrencyCode),
             'currency'              => $currency,
             'customer_email'        => $order->getData('customer_email'),
-            'customer_name'         => trim($order->getData('customer_firstname').' '.$order->getData('customer_lastname')),
+            //'customer_name'         => trim($order->getData('customer_firstname').' '.$order->getData('customer_lastname')),
             'token_name'            => $fortParams['token_name'],
             'language'              => $language,
             'return_url'            => Mage::helper('payfort/data')->getReturnUrl('payfort/payment/response'),
         );
+        if(!empty($order->getData('customer_firstname'))) {
+            $postData['customer_name'] = trim($order->getData('customer_firstname').' '.$order->getData('customer_lastname'));
+        }
         //calculate request signature
         $signature    = Mage::helper('payfort/data')->calculateSignature($postData, 'request');
         $postData['signature'] = $signature;
