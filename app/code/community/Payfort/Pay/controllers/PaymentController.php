@@ -524,7 +524,8 @@ class Payfort_Pay_PaymentController extends Mage_Core_Controller_Front_Action
             'language'              => $language,
             'return_url'            => Mage::helper('payfort/data')->getReturnUrl('payfort/payment/response'),
         );
-        if(!empty($order->getData('customer_firstname'))) {
+        $customerFName = $order->getData('customer_firstname');
+        if(!empty($customerFName)) {
             $postData['customer_name'] = trim($order->getData('customer_firstname').' '.$order->getData('customer_lastname'));
         }
         //calculate request signature
