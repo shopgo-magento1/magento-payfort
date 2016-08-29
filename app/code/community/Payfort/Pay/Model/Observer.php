@@ -1,11 +1,19 @@
 <?php
+
+require_once(MAGENTO_ROOT . '/lib/payfortFort/init.php');
+
 class Payfort_Pay_Model_Observer extends Mage_CatalogInventory_Model_Observer
 {
+
+    public $pfConfig;
+    public $pfHelper;
+
     function __construct()
     {
-        
+        $this->pfConfig = Payfort_Fort_Config::getInstance();
+        $this->pfHelper = Payfort_Fort_Helper::getInstance();
     }
-    
+
     /**
      * Save order into registry to use it in the overloaded controller.
      *
@@ -17,10 +25,38 @@ class Payfort_Pay_Model_Observer extends Mage_CatalogInventory_Model_Observer
         /* @var $order Mage_Sales_Model_Order */
         $order = $observer->getEvent()->getData('order');
         Mage::register('payfort_fort_order', $order, true);
-        
+
         return $this;
     }
-    
+
+    public function paymentMethodIsActive($observer)
+    {
+        $event            = $observer->getEvent();
+        $method           = $event->getMethodInstance();
+        $result           = $event->getResult();
+        $napsPaymentCode  = Mage::getModel('payfort/payment_naps')->getCode();
+        $sadadPaymentCode = Mage::getModel('payfort/payment_sadad')->getCode();
+        
+        if (($method->getCode() == $napsPaymentCode) || ($method->getCode() == $sadadPaymentCode)) {
+            $quote = $event->getQuote();
+            if ($quote) {
+                $frontCurrency = $this->pfHelper->getFrontCurrency();
+                $baseCurrency  = $this->pfHelper->getBaseCurrency();
+                $currency      = $this->pfHelper->getFortCurrency($baseCurrency, $frontCurrency);
+                if ($method->getCode() == $napsPaymentCode) {
+                    if ($currency != 'QAR') {
+                        $result->isAvailable = false;
+                    }
+                }
+                if ($method->getCode() == $sadadPaymentCode) {
+                    if ($currency != 'SAR') {
+                        $result->isAvailable = false;
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Set data for response of frontend saveOrder action
      *

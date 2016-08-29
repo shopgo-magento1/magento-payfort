@@ -1,16 +1,18 @@
 <?php
 
-class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
+require_once(MAGENTO_ROOT . '/lib/payfortFort/init.php');
 
-    const PAYFORT_FORT_LOG_FILE = 'payfortfort.log';
-    
-    private $_gatewayHost        = 'https://checkout.payfort.com/';
-    private $_gatewaySandboxHost = 'https://sbcheckout.payfort.com/';
-    //private $_gatewaySandboxHost = 'https://checkout.fortstg.com/';
-    
-    public function deleteallCartItems() {
+class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract
+{
+    public $pfConfig;
+    public function __construct()
+    {
+        $this->pfConfig = Payfort_Fort_Config::getInstance();
+    }
+    public function deleteAllCartItems()
+    {
         $cartHelper = Mage::helper('checkout/cart');
-        $items = $cartHelper->getCart()->getItems();
+        $items      = $cartHelper->getCart()->getItems();
         foreach ($items as $item) {
             $itemId = $item->getItemId();
             $cartHelper->getCart()->removeItem($itemId)->save();
@@ -21,8 +23,10 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
      * Translates the response code into a more meaningful description.
      * Response code descriptions are taken directly from the Payfort documentation.
      */
-    function getResponseCodeDescription($responseCode) {
-        switch ($responseCode) {
+    function getResponseCodeDescription($responseCode)
+    {
+        switch ($responseCode)
+        {
             case "0" : $result = "Invalid or incomplete";
                 break;
             case "1" : $result = "Cancelled by customer";
@@ -38,123 +42,32 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
 
         return $result;
     }
-    
-    /**
-     * Convert Amount with dicemal points
-     * @param decimal $amount
-     * @param string $baseCurrencyCode
-     * @param string  $currentCurrencyCode
-     * @return decimal
-     */
-    public function convertFortAmount($amount, $baseCurrencyCode, $currentCurrencyCode)
+
+    public function isMerchantPageMethod($order = '')
     {
-
-        $new_amount     = 0;
-        $decimal_points = $this->getCurrencyDecimalPoint($currentCurrencyCode);
-        $new_amount     = round($amount, $decimal_points);
-        $new_amount     = round(Mage::helper('directory')->currencyConvert($new_amount, $baseCurrencyCode, $currentCurrencyCode), 2);
-        $new_amount     = $new_amount * (pow(10, $decimal_points));
-        return $new_amount;
-    }
-    
-    
-    /**
-     * 
-     * @param string $currency
-     * @param integer 
-     */
-    public function getCurrencyDecimalPoint($currency)
-    {
-        $decimalPoint  = 2;
-        $arrCurrencies = array(
-            'JOD' => 3,
-            'KWD' => 3,
-            'OMR' => 3,
-            'TND' => 3,
-            'BHD' => 3,
-            'LYD' => 3,
-            'IQD' => 3,
-        );
-        if (isset($arrCurrencies[$currency])) {
-            $decimalPoint = $arrCurrencies[$currency];
-        }
-        return $decimalPoint;
-    }
-    
-    /**
-     * calculate fort signature
-     * @param array $arr_data
-     * @param sting $sign_type request or response
-     * @return string fort signature
-     */
-    public function calculateSignature($arr_data, $sign_type = 'request')
-    {
-        $sha_in_pass_phrase  = Mage::getStoreConfig('payment/payfort/sha_in_pass_phrase');
-        $sha_out_pass_phrase = Mage::getStoreConfig('payment/payfort/sha_out_pass_phrase');
-        $sha_type = Mage::getStoreConfig('payment/payfort/sha_type');
-        $sha_type = str_replace('-', '', $sha_type);
-        
-        $shaString = '';
-
-        ksort($arr_data);
-        foreach ($arr_data as $k => $v) {
-            $shaString .= "$k=$v";
-        }
-
-        if ($sign_type == 'request') {
-            $shaString = $sha_in_pass_phrase . $shaString . $sha_in_pass_phrase;
-        }
-        else {
-            $shaString = $sha_out_pass_phrase . $shaString . $sha_out_pass_phrase;
-        }
-        $signature = hash($sha_type, $shaString);
-
-        return $signature;
-    }
-    
-    public function getGatewayUrl($type='redirection') {
-        $testMode = Mage::getStoreConfig('payment/payfort/sandbox_mode');
-        if($type == 'notificationApi') {
-            $gatewayUrl = $testMode ? $this->_gatewaySandboxHost.'FortAPI/paymentApi' : $this->_gatewayHost.'FortAPI/paymentApi';
-        }
-        else{
-            $gatewayUrl = $testMode ? $this->_gatewaySandboxHost.'FortAPI/paymentPage' : $this->_gatewayHost.'FortAPI/paymentPage';
-        }
-        
-        return $gatewayUrl;
-    }
-    
-    public function getMerchantPageData() {
-            $language = $this->getLanguage();
-            $_order              = Mage::getModel('sales/order');
-            $orderId             = Mage::getSingleton('checkout/session')->getLastRealOrderId();
-            $_order->loadByIncrementId($orderId);
-            $gatewayParams = array(
-                'merchant_identifier' => Mage::getStoreConfig('payment/payfort/merchant_identifier'),
-                'access_code'         => Mage::getStoreConfig('payment/payfort/access_code'),
-                'merchant_reference'  => $orderId,
-                'service_command'     => 'TOKENIZATION',
-                'language'            => $language,
-                'return_url'          => $this->getReturnUrl('payfort/payment/merchantPageResponse'),
-            );
-            //calculate request signature
-            $signature = $this->calculateSignature($gatewayParams, 'request');
-            $gatewayParams['signature'] = $signature;
-            
-            $gatewayUrl = $this->getGatewayUrl('merchantPage');
-            
-            return array('url' => $gatewayUrl, 'params' => $gatewayParams);
-    }
-    
-    public function isMerchantPageMethod($order = '') {
-        $useMerchantPage = Mage::getStoreConfig('payment/payfortcc/integration_type') == 'merchantPage' ? true : false;
-        if(!empty($order)) {
+        $useMerchantPage = $this->pfConfig->isCcMerchantPage();
+        if (!empty($order)) {
             $paymentCode = $order->getPayment()->getMethodInstance()->getCode();
         }
-        else{
+        else {
             $paymentCode = Mage::getSingleton('checkout/session')->getQuote()->getPayment()->getMethodInstance()->getCode();
         }
-        if($useMerchantPage && $paymentCode == Mage::getModel('payfort/payment_cc')->getCode()) {
+        if ($useMerchantPage && $paymentCode == Mage::getModel('payfort/payment_cc')->getCode()) {
+            return true;
+        }
+        return false;
+    }
+
+    public function isMerchantPageMethod2($order = '')
+    {
+        $useMerchantPage = $this->pfConfig->isCcMerchantPage2();
+        if (!empty($order)) {
+            $paymentCode = $order->getPayment()->getMethodInstance()->getCode();
+        }
+        else {
+            $paymentCode = Mage::getSingleton('checkout/session')->getQuote()->getPayment()->getMethodInstance()->getCode();
+        }
+        if ($useMerchantPage && $paymentCode == Mage::getModel('payfort/payment_cc')->getCode()) {
             return true;
         }
         return false;
@@ -168,7 +81,7 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
     public function getReviewButtonTemplate($name, $block)
     {
         //$quote = Mage::getSingleton('checkout/session')->getQuote();
-        if($this->isMerchantPageMethod()) {
+        if ($this->isMerchantPageMethod() || $this->isMerchantPageMethod2()) {
             return $name;
         }
 
@@ -178,42 +91,35 @@ class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract {
 
         return '';
     }
-    
-    /**
-     * Log the error on the disk
-     */
-    public function log($messages, $forceDebug = false) {
-        $debugMode = Mage::getStoreConfig('payment/payfort/debug_mode');
-        if(!$debugMode && !$forceDebug) {
-            return;
-        }
-        Mage::log($messages, null, self::PAYFORT_FORT_LOG_FILE, true);
+
+    public function renderResponse($response_message)
+    {
+        $this->loadLayout();
+        //Creating a new block
+        $block = $this->getLayout()->createBlock(
+                        'Mage_Core_Block_Template', 'payfort_block_response', array('template' => 'payfort/pay/response.phtml')
+                )
+                ->setData('response_message', $response_message);
+
+        $this->getLayout()->getBlock('content')->append($block);
+
+        //Now showing it with rendering of layout
+        $this->renderLayout();
     }
     
-    public function getReturnUrl($path) {
-        if (Mage::app()->getStore()->isFrontUrlSecure() 
-            && Mage::app()->getRequest()->isSecure()
-        ) {
-            // current page is https
-            return Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK, true) . $path;
+    public function getCcTypeName($type)
+    {
+        if (preg_match('/^paypal/', strtolower($type))) {
+            return 'PayPal';
         }
-        else {
-            // current page is http
-            return Mage::getBaseUrl() . $path;
+
+        if(is_null($this->_ccTypeNames)) {
+            $this->_ccTypeNames = Mage::getSingleton('payment/config')->getCcTypes();
         }
+        return (isset($this->_ccTypeNames[$type]) ? $this->_ccTypeNames[$type] : 'Unknown');
     }
     
-    public function getLanguage() {
-        $language = Mage::getStoreConfig('payment/payfort/language');
-        if ($language == 'no_language') {
-            $language = Mage::app()->getLocale()->getLocaleCode();
-        }
-        if(substr($language, 0, 2) == 'ar') {
-            $language = 'ar';
-        }
-        else{
-            $language = 'en';
-        }
-        return $language;
+    public function getCcTypes() {
+        return 'VI,MC';
     }
 }

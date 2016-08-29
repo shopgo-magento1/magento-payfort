@@ -4,7 +4,7 @@
         <reference name="head">
             <action method="addLinkRel"><rel>stylesheet</rel><href>https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css</href></action>
             <action method="addCss"><stylesheet>css/payfort/merchant-page.css</stylesheet></action>
-            <action method="addJs"><script>payfort/checkout-submit.js</script></action>
+            <action method="addJs"><script>payfort/payfort_fort.js</script></action>
         </reference>
     </checkout_onepage_index>
     <checkout_onepage_review translate="label">

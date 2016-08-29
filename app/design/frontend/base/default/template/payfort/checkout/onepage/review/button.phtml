@@ -11,6 +11,7 @@ Review.prototype.save = function() {
     if (checkout.loadWaiting!=false) return;
     checkout.setLoadWaiting('review');
     var params = Form.serialize(payment.form);
+    var paymentMethod = payment.currentMethod;
     params.save = true;
     var request = new Ajax.Request(
         this.saveUrl,
@@ -33,7 +34,11 @@ Review.prototype.save = function() {
             onSuccess: function(response){
                 checkout.setLoadWaiting(false);
                 //get iframe params
-                submitMerchantPage('<?php echo Mage::getUrl('payfort/payment/getMerchantPageData');?>');
+                <?php if($pfHelper->isMerchantPageMethod2()): ?>
+                    payfortFortMerchantPage2.submitMerchantPage(paymentMethod, '<?php echo Mage::getUrl('payfort/payment/getMerchantPageData');?>');
+                <?php else: ?>
+                    payfortFortMerchantPage.submitMerchantPage('<?php echo Mage::getUrl('payfort/payment/getMerchantPageData');?>');
+                <?php endif; ?>
                 return;
                 //this.onSave;
             },

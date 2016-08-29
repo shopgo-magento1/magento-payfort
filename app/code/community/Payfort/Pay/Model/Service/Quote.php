@@ -6,7 +6,7 @@ class Payfort_Pay_Model_Service_Quote extends Mage_Sales_Model_Service_Quote {
         $order = parent::submitOrder();
 
         // Prevent the cart to be emptied before payment response
-        //$this->_quote->setIsActive(true);
+        $this->_quote->setIsActive(true);
 
         return $order;
     }
