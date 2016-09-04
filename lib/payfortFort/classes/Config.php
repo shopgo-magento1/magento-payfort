@@ -44,7 +44,7 @@ class Payfort_Fort_Config
 
     public function __construct()
     {
-        $this->gatewayHost        = 'https://checkout.payfort.com/';
+        $this->gatewayProdHost    = 'https://checkout.payfort.com/';
         $this->gatewaySandboxHost = 'https://sbcheckout.payfort.com/';
         $this->logFileDir         = 'payfortfort.log';
 
