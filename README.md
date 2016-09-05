@@ -28,15 +28,22 @@ Note: please make sure the dir [Magento1 root folder]/var/connect is writable.
 
 ## Changelog
 
-`v1.1.3`
+`v1.2.1`
 
-- Fix signature mismatch issue if the customer name is empty.
+- The plugin now is working for IWD One Page Checkout.
+
 
 `v1.2.0`
 
 - Added option for Gateway currency.
 - Added merchant page 2.0
 - Fixing some bugs.
+
+
+`v1.1.3`
+
+- Fix signature mismatch issue if the customer name is empty.
+
 
 ## Why Payfort?
 

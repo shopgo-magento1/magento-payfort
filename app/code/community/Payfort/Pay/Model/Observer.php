@@ -63,6 +63,36 @@ class Payfort_Pay_Model_Observer extends Mage_CatalogInventory_Model_Observer
      * @param Varien_Event_Observer $observer
      * @return Mage_Paypal_Model_Observer
      */
+    public function setResponseAfterSaveOrder(Varien_Event_Observer $observer)
+    {
+        $order = Mage::registry('payfort_fort_order');
+        if($order && $order->getId()) {
+            /* @var $controller Mage_Core_Controller_Varien_Action */
+            $controller = $observer->getEvent()->getData('controller_action');
+            $result = Mage::helper('core')->jsonDecode(
+                    $controller->getResponse()->getBody('default'),
+                    Zend_Json::TYPE_ARRAY
+                );
+            if(empty($result['error'])) {
+                $paymentMethod = $order->getPayment()->getMethodInstance()->getCode();
+                if($paymentMethod == PAYFORT_FORT_PAYMENT_METHOD_CC) {
+                    if($this->pfConfig->isCcMerchantPage2()) {
+                        $controller = $observer->getEvent()->getData('controller_action');
+                        $result['redirect'] = false;
+                        $controller->getResponse()->clearHeader('Location');
+                        $controller->getResponse()->setBody(Mage::helper('core')->jsonEncode($result));
+                    }
+                }
+            }
+        }
+        return $this;
+    }
+    /**
+     * Set data for response of frontend saveOrder action
+     *
+     * @param Varien_Event_Observer $observer
+     * @return Mage_Paypal_Model_Observer
+     */
 //    public function setResponseAfterSaveOrder(Varien_Event_Observer $observer)
 //    {
 //        /* @var $order Mage_Sales_Model_Order */

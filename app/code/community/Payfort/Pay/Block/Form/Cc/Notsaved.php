@@ -1,12 +1,12 @@
 <?php
-class Payfort_Pay_Block_Form_Cc_Notsaved extends Mage_Payment_Block_Form_Cc
+class Payfort_Pay_Block_Form_Cc_Notsaved extends Payfort_Pay_Block_Form_Gatewaycc
 {
     protected function _construct()
     {
         parent::_construct();
         $this->setTemplate('payfort/form/merchant-page2.phtml');
     }
-    
+        
     /**
      * Retrieve availables credit card types
      *
@@ -29,4 +29,5 @@ class Payfort_Pay_Block_Form_Cc_Notsaved extends Mage_Payment_Block_Form_Cc
         }
         return $types;
     }
+    
 }

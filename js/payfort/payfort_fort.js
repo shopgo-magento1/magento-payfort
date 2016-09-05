@@ -23,6 +23,7 @@ var payfortFort = (function () {
 var payfortFortMerchantPage2 = (function () {
     return {
         submitMerchantPage: function(paymentMethod, merchantPageDataUrl) {
+            var merchantPage2FormId = '#frm_payfort_fort_payment';
             var card_number = jQuery('#'+paymentMethod+'_cc_number').val();
             var card_holder_name = jQuery('#'+paymentMethod+'_cc_owner').val();
             var expiry_year = jQuery('#'+paymentMethod+'_expiration_yr').val();
@@ -45,17 +46,21 @@ var payfortFortMerchantPage2 = (function () {
                     respnse.params.card_holder_name = card_holder_name;
                     respnse.params.card_security_code = card_security_code;
                     respnse.params.expiry_date = expiry_date;
-                    jQuery('#payfort_payment_form').html('');
+                    
+                    if(jQuery(merchantPage2FormId).size()) {
+                        jQuery( merchantPage2FormId ).remove();
+                    }
+                    jQuery('<form id="frm_payfort_fort_payment" action="'+respnse.url+'" method="POST"><input type="submit"/></form>').appendTo('body');
                     jQuery.each(respnse.params, function(k, v){
                         jQuery('<input>').attr({
                             type: 'hidden',
                             id: k,
                             name: k,
                             value: v
-                        }).appendTo('#payfort_payment_form'); 
+                        }).appendTo(merchantPage2FormId); 
                     });
-                    jQuery('#payfort_payment_form').attr('action', respnse.url);
-                    jQuery('#payfort_payment_form').submit();
+                    jQuery(merchantPage2FormId).attr('action', respnse.url);
+                    jQuery(merchantPage2FormId).submit();
                 },
                 error: function () {
                     alert("Can't load payment page!");
@@ -124,3 +129,27 @@ var payfortFortMerchantPage = (function () {
         },
     };
 })();
+
+payfortFort.IWD_OPC_responseSaveOrder = {
+    init: function(){
+            if(typeof(IWD) != 'undefined' && IWD != undefined && IWD != '' && IWD
+                    && typeof(IWD.OPC) != 'undefined' && IWD.OPC != undefined && IWD.OPC != '' && IWD.OPC) {
+                IWD.OPC.Plugin.event('responseSaveOrder', payfortFort.IWD_OPC_responseSaveOrder.handleResponse);
+            }
+    },
+    handleResponse: function(response) {
+        IWD.OPC.Checkout.showLoader();
+        IWD.OPC.Checkout.lockPlaceOrder();
+        
+        payfortFortMerchantPage2.submitMerchantPage('payfortcc', IWD.OPC.Checkout.config.baseUrl + 'payfort/payment/getMerchantPageData');
+        
+        IWD.OPC.Checkout.hideLoader();
+        IWD.OPC.Checkout.unlockPlaceOrder();
+    }
+}
+jQuery(document).ready(function() {
+    if(typeof(IWD) != 'undefined' && IWD != undefined && IWD != '' && IWD
+            && typeof(IWD.OPC) != 'undefined' && IWD.OPC != undefined && IWD.OPC != '' && IWD.OPC) {
+        payfortFort.IWD_OPC_responseSaveOrder.init();
+    }
+});

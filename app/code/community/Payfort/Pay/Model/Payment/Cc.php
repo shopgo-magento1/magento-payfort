@@ -22,12 +22,18 @@ class Payfort_Pay_Model_Payment_Cc extends Mage_Payment_Model_Method_Abstract
             $this->_formBlockType = 'payfort/form_cc_notsaved';
             $this->_infoBlockType = 'payfort/info_cc_notsaved';
         }
+        else {
+            $this->_formBlockType = 'payfort/form_gateway';
+        }
         parent::__construct();
         
     }
 
     public function getOrderPlaceRedirectUrl()
     {
+        if($this->pfConfig->getCcIntegrationType() == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE2) {
+            return '';
+        }
         return Mage::getUrl('payfort/payment/redirect', array('_secure' => true));
     }
 

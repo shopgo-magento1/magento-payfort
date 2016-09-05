@@ -59,3 +59,44 @@
     </li>
     <?php endif; ?>
 </ul>
+
+<script type="text/javascript">
+//<![CDATA[
+//Review.prototype.save = function() {
+//    if (checkout.loadWaiting!=false) return;
+//    checkout.setLoadWaiting('review');
+//    var params = Form.serialize(payment.form);
+//    console.log(params);
+//    var paymentMethod = payment.currentMethod;
+//    params.save = true;
+//    var request = new Ajax.Request(
+//        this.saveUrl,
+//        {
+//            method:'post',
+//            parameters:params,
+//            onComplete: function(transport) {
+//                if (transport && transport.responseText) {
+//                    try{
+//                        response = eval('(' + transport.responseText + ')');
+//                    }
+//                    catch (e) {
+//                        response = {};
+//                    }
+//                    if (response.error_messages) {
+//                        checkout.setLoadWaiting(false);
+//                    }
+//                }
+//            },
+//            onSuccess: function(response){
+//                checkout.setLoadWaiting(false);
+//                //get iframe params
+//                payfortFortMerchantPage2.submitMerchantPage(paymentMethod, '<?php echo Mage::getUrl('payfort/payment/getMerchantPageData');?>');
+//                return;
+//                //this.onSave;
+//            },
+//            onFailure: checkout.ajaxFailure.bind(checkout)
+//        }
+//    );
+//}
+//]]>
+</script>
