@@ -83,6 +83,25 @@
                     </paymentfilter_payment_method_is_active>
                 </observers>
             </payment_method_is_active>
+            
+            <controller_action_postdispatch_opc_json_saveOrder>
+                <observers>
+                    <payfort_fort_set_response_after_save_order>
+                        <class>Payfort_Pay_Model_Observer</class>
+                        <method>setResponseAfterSaveOrder</method>
+                    </payfort_fort_set_response_after_save_order>
+                </observers>
+            </controller_action_postdispatch_opc_json_saveOrder>
+            
+            <controller_action_postdispatch_checkout_onepage_saveOrder>
+                <observers>
+                    <payfort_fort_set_response_after_save_order>
+                        <class>Payfort_Pay_Model_Observer</class>
+                        <method>setResponseAfterSaveOrder</method>
+                    </payfort_fort_set_response_after_save_order>
+                </observers>
+            </controller_action_postdispatch_checkout_onepage_saveOrder>
+            
         </events>
     </global>
     <default>
