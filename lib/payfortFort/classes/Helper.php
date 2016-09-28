@@ -210,7 +210,7 @@ class Payfort_Fort_Helper
                 try {
                     $cart->addOrderItem($item);
                 } catch (Mage_Core_Exception $e) {
-                    $session->addError($this->__($e->getMessage()));
+                    $session->addError($e->getMessage());
                     Mage::logException($e);
                     continue;
                 }

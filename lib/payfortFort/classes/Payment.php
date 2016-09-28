@@ -85,7 +85,7 @@ class Payfort_Fort_Payment
      * @param string $responseMode (online, offline)
      * @retrun boolean
      */
-    public function handleFortResponse($fortParams = array(), $responseMode = 'online', $integrationType = 'redirection')
+    public function handleFortResponse($fortParams = array(), $responseMode = 'online', $integrationType = 'redirection', $responseSource = '')
     {
         try {
             $responseParams  = $fortParams;
@@ -152,7 +152,7 @@ class Payfort_Fort_Payment
                 }
             }
 
-            if ($integrationType == 'cc_merchant_page_h2h') {
+            if ($responseSource == 'h2h') {
                 if ($responseCode == '20064' && isset($responseParams['3ds_url'])) {
                     if($integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE2) {
                         header('location:' . $responseParams['3ds_url']);
@@ -188,9 +188,9 @@ class Payfort_Fort_Payment
                 }
             }
             if (substr($responseCode, 2) == '000') {
-                if ($paymentMethod == PAYFORT_FORT_PAYMENT_METHOD_CC && ($integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE || $integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE2)) {
+                if ($responseMode == 'online' && $paymentMethod == PAYFORT_FORT_PAYMENT_METHOD_CC && ($integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE || $integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE2)) {
                     $host2HostParams = $this->merchantPageNotifyFort($responseParams, $orderId);
-                    return $this->handleFortResponse($host2HostParams, 'online', 'cc_merchant_page_h2h');
+                    return $this->handleFortResponse($host2HostParams, 'online', $integrationType, 'h2h');
                 }
                 else { //success order
                     $this->pfOrder->successOrder($responseParams, $responseMode);
