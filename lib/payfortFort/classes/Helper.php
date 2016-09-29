@@ -77,7 +77,7 @@ class Payfort_Fort_Helper
             //$new_amount = round($amount * $currency_value, $decimal_points);
             $baseCurrencyCode    = $this->getBaseCurrency();
             $currentCurrencyCode = $this->getFrontCurrency();
-            $new_amount          = round(Mage::helper('directory')->currencyConvert($new_amount, $baseCurrencyCode, $currentCurrencyCode), 2);
+            $new_amount          = round(Mage::helper('directory')->currencyConvert($amount, $baseCurrencyCode, $currentCurrencyCode), 2);
         }
         else {
             $new_amount = round($amount, $decimal_points);
