@@ -147,35 +147,9 @@ payfortFort.IWD_OPC_responseSaveOrder = {
         IWD.OPC.Checkout.unlockPlaceOrder();
     }
 }
-Event.observe(window, 'load', function() {
-    //check if the user in payment page
-    if(typeof(payment) != 'undefined' && payment != undefined && payment != '' && payment) {
-        //IWD OPC fix
-        if(typeof(IWD) != 'undefined' && IWD != undefined && IWD != '' && IWD
-                && typeof(IWD.OPC) != 'undefined' && IWD.OPC != undefined && IWD.OPC != '' && IWD.OPC) {
-                payfortFort.IWD_OPC_responseSaveOrder.init();
-        }
-        
-        /* onestepchekout fix
-         * @url : https://www.onestepcheckout.com/
-         */
-        // check if we are dealing with OneStepCheckout
-        payment.isOneStepCheckout = $$('.onestepcheckout-place-order');
-        if(payment.isOneStepCheckout.length) {
-            payment.formOneStepCheckout = $('onestepcheckout-form');
-            payment.yourmethod = 'payfortcc';
-            payment.submitclicked = false;
-            payment.formOneStepCheckout.submit =  payment.formOneStepCheckout.submit.wrap(function(originalSubmitMethod) {
-                if(payment.submitclicked){
-                    return;
-                }
-                payment.submitclicked = true;
-                if (payment.currentMethod == payment.yourmethod && payfortFort.integrationType == 'merchantPage2') {
-                    payfortFortMerchantPage2.submitMerchantPage(payment.yourmethod, payfortFort.BASE_URL + 'payfort/payment/getMerchantPageData');
-                } else {
-                    originalSubmitMethod();
-                }
-            });
-        }
+jQuery(document).ready(function() {
+    if(typeof(IWD) != 'undefined' && IWD != undefined && IWD != '' && IWD
+            && typeof(IWD.OPC) != 'undefined' && IWD.OPC != undefined && IWD.OPC != '' && IWD.OPC) {
+        payfortFort.IWD_OPC_responseSaveOrder.init();
     }
 });
