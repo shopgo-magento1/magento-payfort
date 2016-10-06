@@ -32,6 +32,10 @@ class Payfort_Pay_Model_Payment_Cc extends Mage_Payment_Model_Method_Abstract
     public function getOrderPlaceRedirectUrl()
     {
         if($this->pfConfig->getCcIntegrationType() == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE2) {
+            $postData = Mage::app()->getRequest()->getPost();
+            if(isset($postData['pluginName']) && $postData['pluginName'] == 'OneStepCheckout') {
+                return Mage::getUrl('/', array('_secure' => true));
+            }
             return '';
         }
         return Mage::getUrl('payfort/payment/redirect', array('_secure' => true));
