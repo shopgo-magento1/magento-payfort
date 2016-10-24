@@ -188,7 +188,7 @@ class Payfort_Fort_Payment
                 }
             }
             if (substr($responseCode, 2) == '000') {
-                if ($responseMode == 'online' && $paymentMethod == PAYFORT_FORT_PAYMENT_METHOD_CC && ($integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE || $integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE2)) {
+                if ($responseMode == 'online' && $responseSource != 'h2h' && $paymentMethod == PAYFORT_FORT_PAYMENT_METHOD_CC && ($integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE || $integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE2)) {
                     $host2HostParams = $this->merchantPageNotifyFort($responseParams, $orderId);
                     return $this->handleFortResponse($host2HostParams, 'online', $integrationType, 'h2h');
                 }
@@ -237,6 +237,7 @@ class Payfort_Fort_Payment
             'customer_email'      => $this->pfOrder->getEmail(),
             'token_name'          => $fortParams['token_name'],
             'language'            => $language,
+            'remember_me'         => 'NO',
             'return_url'          => $this->pfHelper->getReturnUrl('responseOnline')
         );
         $customerName = $this->pfOrder->getCustomerName();
