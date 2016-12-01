@@ -1,6 +1,6 @@
 <?php
 
-require_once(MAGENTO_ROOT . '/lib/payfortFort/init.php');
+require_once( Mage::getBaseDir('lib') . '/payfortFort/init.php');
 
 class Payfort_Pay_Helper_Data extends Mage_Core_Helper_Abstract
 {
