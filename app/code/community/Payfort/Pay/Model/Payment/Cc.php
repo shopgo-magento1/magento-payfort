@@ -1,6 +1,6 @@
 <?php
 
-require_once(MAGENTO_ROOT . '/lib/payfortFort/init.php');
+require_once(Mage::getBaseDir('lib') . '/payfortFort/init.php');
 
 class Payfort_Pay_Model_Payment_Cc extends Mage_Payment_Model_Method_Abstract
 {
