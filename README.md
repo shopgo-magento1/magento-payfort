@@ -30,11 +30,11 @@ Note: please make sure the dir [Magento1 root folder]/var/connect is writable.
 
 `v1.2.2`
 
-- The plugin now is support OneStepCheckout.
+- The plugin now is support OneStepCheckout [https://www.onestepcheckout.com/](https://www.onestepcheckout.com/).
 
 `v1.2.1`
 
-- The plugin now is working for IWD One Page Checkout.
+- The plugin now is working for IWD One Page Checkout [https://www.iwdagency.com/extensions/one-step-page-checkout.html](https://www.iwdagency.com/extensions/one-step-page-checkout.html).
 
 
 `v1.2.0`
