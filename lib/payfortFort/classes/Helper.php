@@ -36,9 +36,13 @@ class Payfort_Fort_Helper
     {
         $gateway_currency = $this->pfConfig->getGatewayCurrency();
         $currencyCode     = $baseCurrencyCode;
-        if ($gateway_currency == 'front') {
+
+        if ($gateway_currency != 'front' && $gateway_currency != 'base') { //Allow custom currency
+            $currencyCode = $gateway_currency;
+        } elseif ($gateway_currency == 'front') {
             $currencyCode = $currentCurrencyCode;
         }
+
         return $currencyCode;
     }
 
@@ -73,7 +77,13 @@ class Payfort_Fort_Helper
         $new_amount       = 0;
         //$decimal_points = $this->currency->getDecimalPlace();
         $decimal_points   = $this->getCurrencyDecimalPoints($currency_code);
-        if ($gateway_currency == 'front') {
+
+        if($gateway_currency != 'front' && $gateway_currency != 'base') {//calc ammount for custom currency
+            $baseCurrencyCode = $this->getBaseCurrency();
+            $currentCurrencyCode = $currency_code;
+            $new_amount = round(Mage::helper('directory')->currencyConvert($amount, $baseCurrencyCode, $currentCurrencyCode), 2);
+        }
+        elseif ($gateway_currency == 'front') {
             //$new_amount = round($amount * $currency_value, $decimal_points);
             $baseCurrencyCode    = $this->getBaseCurrency();
             $currentCurrencyCode = $this->getFrontCurrency();
