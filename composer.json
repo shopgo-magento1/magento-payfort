@@ -1,0 +1,15 @@
+{
+    "name": "payfort/magento-payfort",
+    "type": "magento-module",
+    "license": "MIT",
+    "description": "Payfort Magento 1 module",
+    "require": {
+        "magento-hackathon/magento-composer-installer": "*"
+    },
+    "authors":[
+        {
+            "name": "Payfort",
+            "email": "support@payfort.com"
+        }
+    ]
+}
