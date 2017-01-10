@@ -40,18 +40,22 @@ class Payfort_Fort_Payment
             $baseCurrency                    = $this->pfHelper->getBaseCurrency();
             $orderCurrency                   = $this->pfOrder->getCurrencyCode();
             $currency                        = $this->pfHelper->getFortCurrency($baseCurrency, $orderCurrency);
-            $gatewayParams['currency']       = strtoupper($currency);
-            $gatewayParams['amount']         = $this->pfHelper->convertFortAmount($this->pfOrder->getTotal(), $this->pfOrder->getCurrencyValue(), $currency);
-            $gatewayParams['customer_email'] = $this->pfOrder->getEmail();
-            $gatewayParams['command']        = $this->pfConfig->getCommand();
-            $gatewayParams['return_url']     = $this->pfHelper->getReturnUrl('responseOnline');
+
             if ($paymentMethod == PAYFORT_FORT_PAYMENT_METHOD_SADAD) {
                 $gatewayParams['payment_option'] = 'SADAD';
+                $currency = 'SAR';
             }
             elseif ($paymentMethod == PAYFORT_FORT_PAYMENT_METHOD_NAPS) {
                 $gatewayParams['payment_option']    = 'NAPS';
                 $gatewayParams['order_description'] = $orderId;
             }
+
+            $gatewayParams['currency']       = strtoupper($currency);
+            $gatewayParams['amount']         = $this->pfHelper->convertFortAmount($this->pfOrder->getTotal(), $this->pfOrder->getCurrencyValue(), $currency);
+            $gatewayParams['customer_email'] = $this->pfOrder->getEmail();
+            $gatewayParams['command']        = $this->pfConfig->getCommand();
+            $gatewayParams['return_url']     = $this->pfHelper->getReturnUrl('responseOnline');
+
         }
         elseif ($integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE || $integrationType == PAYFORT_FORT_INTEGRATION_TYPE_MERCAHNT_PAGE2) {
             $gatewayParams['service_command'] = 'TOKENIZATION';
