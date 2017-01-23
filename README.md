@@ -28,6 +28,11 @@ Note: please make sure the dir [Magento1 root folder]/var/connect is writable.
 
 ## Changelog
 
+`v1.2.3`
+
+- Fix e-mail issue on place order, the e-mail  now will be sent only for success orders.
+- Send order invoice e-mail.
+
 `v1.2.2`
 
 - The plugin now is support OneStepCheckout [https://www.onestepcheckout.com/](https://www.onestepcheckout.com/).
