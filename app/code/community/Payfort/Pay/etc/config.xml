@@ -68,37 +68,46 @@
         <events>
             <checkout_submit_all_after>
                 <observers>
-                    <payfort_fort_save_order_after_submit>
+                    <payfort_pay_model_observer>
                         <class>Payfort_Pay_Model_Observer</class>
                         <method>saveOrderAfterSubmit</method>
-                    </payfort_fort_save_order_after_submit>
+                    </payfort_pay_model_observer>
                 </observers>
             </checkout_submit_all_after>
+            <checkout_type_onepage_save_order_after>
+                <observers>
+                    <payfort_pay_model_observer>
+                        <type>singleton</type>
+                         <class>Payfort_Pay_Model_Observer</class>
+                        <method>afterSaveOrder</method>
+                    </payfort_pay_model_observer>
+                </observers>
+            </checkout_type_onepage_save_order_after>
             <payment_method_is_active>
                 <observers>
-                    <paymentfilter_payment_method_is_active>
+                    <payfort_pay_model_observer>
                         <type>singleton</type>
                         <class>Payfort_Pay_Model_Observer</class>
                         <method>paymentMethodIsActive</method>
-                    </paymentfilter_payment_method_is_active>
+                    </payfort_pay_model_observer>
                 </observers>
             </payment_method_is_active>
             
             <controller_action_postdispatch_opc_json_saveOrder>
                 <observers>
-                    <payfort_fort_set_response_after_save_order>
+                    <payfort_pay_model_observer>
                         <class>Payfort_Pay_Model_Observer</class>
                         <method>setResponseAfterSaveOrder</method>
-                    </payfort_fort_set_response_after_save_order>
+                    </payfort_pay_model_observer>
                 </observers>
             </controller_action_postdispatch_opc_json_saveOrder>
             
             <controller_action_postdispatch_checkout_onepage_saveOrder>
                 <observers>
-                    <payfort_fort_set_response_after_save_order>
+                    <payfort_pay_model_observer>
                         <class>Payfort_Pay_Model_Observer</class>
                         <method>setResponseAfterSaveOrder</method>
-                    </payfort_fort_set_response_after_save_order>
+                    </payfort_pay_model_observer>
                 </observers>
             </controller_action_postdispatch_checkout_onepage_saveOrder>
             

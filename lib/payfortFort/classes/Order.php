@@ -147,39 +147,11 @@ class Payfort_Fort_Order
         
         $response_message = Payfort_Fort_Language::__('Redirecting, please wait...');
         $success = true;
-        try {
-            /** trying to create invoice * */
-            if (!$this->order->canInvoice()):
-                $response_message = Mage::helper('core')->__('cannot create an invoice !'); //already created invoice by host to host
-                $success = false;
-                Mage::throwException(Mage::helper('core')->__('cannot create an invoice !'));
-            else:
-                /** create invoice  * */
-                //$invoiceId = Mage::getModel('sales/order_invoice_api')->create($this->order->getIncremenetId(), array());
-                $invoice = Mage::getModel('sales/service_order', $this->order)->prepareInvoice();
-                if (!$invoice->getTotalQty()):
-                    $response_message = Mage::helper('core')->__('cannot create an invoice without products !'); //already created invoice by host to host
-                    $success = false;
-                    Mage::throwException(Mage::helper('core')->__('cannot create an invoice without products !'));
-                endif;
-                if($success){
-                    $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE);
-                    $invoice->register();
-                    $transactionSave = Mage::getModel('core/resource_transaction')->addObject($invoice)->addObject($invoice->getOrder());
-                    $transactionSave->save();
-                    $this->order->setState($status, true, 'Payfort has accepted the payment.');
-                }
-            /** load invoice * */
-            //$invoice = Mage::getModel('sales/order_invoice')->loadByIncrementId($invoiceId);
-            /** pay invoice * */
-            //$invoice->capture()->save();
-            endif;
-        } catch (Mage_Core_Exception $e) {
-            //Mage::throwException(Mage::helper('core')->__('cannot create an invoice !'));
-            return array($success, $response_message);
-        }
         if($success) {
             if($response_mode == 'offline') {
+                $this->createInvoice();
+                $this->order->setState($status, true, 'Payfort has accepted the payment.');
+                
                 $this->order->sendNewOrderEmail();
                 $this->order->setEmailSent(true);
                 $this->order->save();
@@ -197,6 +169,36 @@ class Payfort_Fort_Order
         }
         
         return array($success, $response_message);
+    }
+    
+    /**
+     *Create Order Invoice
+     * 
+     * @param boolean Returns true if an invoice has been created.
+     */
+    public function createInvoice()
+    {
+        $order = $this->order;
+        $result               = false;
+        try {
+            if (!$order->hasInvoices()) {
+                $invoice = $order->prepareInvoice();
+                $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE);
+
+                $invoice->register();
+                //$invoice->setTransactionId();
+
+                $transactionSave = Mage::getModel('core/resource_transaction')->addObject($invoice)->addObject($invoice->getOrder());
+                $transactionSave->save();
+                
+                $invoice->sendEmail();
+
+                $result = true;
+            }
+        } catch (Exception $e) {
+            Mage::logException($e);
+        }
+        return $result;
     }
 
 }
