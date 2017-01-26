@@ -87,6 +87,23 @@ class Payfort_Pay_Model_Observer extends Mage_CatalogInventory_Model_Observer
         }
         return $this;
     }
+    
+    /**
+     * Dispatch: checkout_type_onepage_save_order_after
+     * @param $observer
+     */
+    public function afterSaveOrder($observer) {
+        $event = $observer->getEvent();
+        $order = $event->getOrder();
+        $paymentMethod = $order->getPayment()->getMethodInstance()->getCode();
+        if(in_array($paymentMethod, array(PAYFORT_FORT_PAYMENT_METHOD_CC, PAYFORT_FORT_PAYMENT_METHOD_NAPS, PAYFORT_FORT_PAYMENT_METHOD_SADAD))) {
+            $order->setCanSendNewEmailFlag(false);
+            /*$order->setState(
+                    Mage_Sales_Model_Order::STATE_PENDING_PAYMENT, (bool) Mage_Sales_Model_Order::STATE_PENDING_PAYMENT, $this->__('Payfort pending payment.')
+            )->save();*/
+            $order->setIsNotified(false);
+        }
+    }
     /**
      * Set data for response of frontend saveOrder action
      *

@@ -1,13 +1,9 @@
 <?php
 
-require_once(Mage::getBaseDir('lib') . '/payfortFort/init.php');
-
-class Payfort_Pay_Model_Payment_Cc extends Mage_Payment_Model_Method_Abstract
+class Payfort_Pay_Model_Payment_Cc extends Payfort_Pay_Model_Method
 {
 
     protected $_code               = PAYFORT_FORT_PAYMENT_METHOD_CC;
-    protected $_isInitializeNeeded = true;
-    protected $_canUseInternal     = true;
     public $pfConfig;
 
     //protected $_canUseForMultishipping = false;
