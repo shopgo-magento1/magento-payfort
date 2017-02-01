@@ -149,7 +149,7 @@ class Payfort_Fort_Order
         $success = true;
         if($success) {
             if($response_mode == 'offline') {
-                $this->createInvoice();
+                $this->createInvoice($response_params);
                 $this->order->setState($status, true, 'Payfort has accepted the payment.');
                 
                 $this->order->sendNewOrderEmail();
@@ -176,20 +176,23 @@ class Payfort_Fort_Order
      * 
      * @param boolean Returns true if an invoice has been created.
      */
-    public function createInvoice()
+    public function createInvoice($response_params)
     {
-        $order = $this->order;
         $result               = false;
         try {
-            if (!$order->hasInvoices()) {
-                $invoice = $order->prepareInvoice();
+            if (!$this->order->hasInvoices()) {
+                $invoice = $this->order->prepareInvoice();
                 $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE);
-
+                
                 $invoice->register();
-                //$invoice->setTransactionId();
-
+                
+                $invoice->setTransactionId($response_params['fort_id']);
+                //$invoice->setTransactionId(1);
                 $transactionSave = Mage::getModel('core/resource_transaction')->addObject($invoice)->addObject($invoice->getOrder());
                 $transactionSave->save();
+                
+                //$invoice->capture();
+                $this->order->addRelatedObject($invoice);
                 
                 $invoice->sendEmail();
 
