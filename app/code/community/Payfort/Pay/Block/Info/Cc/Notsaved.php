@@ -4,7 +4,7 @@ class Payfort_Pay_Block_Info_Cc_Notsaved extends Mage_Payment_Block_Info
     protected function _construct()
     {
         parent::_construct();
-        $this->setTemplate('payfort/info/merchant-page2.phtml');
+        //$this->setTemplate('payfort/info/merchant-page2.phtml');
     }
 
     /**
@@ -14,7 +14,7 @@ class Payfort_Pay_Block_Info_Cc_Notsaved extends Mage_Payment_Block_Info
      */
 //    public function toPdf()
 //    {
-//        $this->setTemplate('ewayrapid/pdf/direct_notsaved.phtml');
+//        $this->setTemplate('/pdf/direct_notsaved.phtml');
 //        return $this->toHtml();
 //    }
 
