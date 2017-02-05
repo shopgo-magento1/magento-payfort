@@ -7,6 +7,7 @@ class Payfort_Pay_Model_Method extends Mage_Payment_Model_Method_Abstract
 
     protected $_isInitializeNeeded = true;
     protected $_canUseInternal     = true;
+    protected $_canCapture         = true;
     
     /**
      * Order statuses         		      			  	
