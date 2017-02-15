@@ -30,6 +30,10 @@ Note: please make sure the dir [Magento1 root folder]/var/connect is writable.
 
 `v1.2.3`
 
+- Fix hots to host url in plugin configurations
+
+`v1.2.3`
+
 - Fix e-mail issue on place order, the e-mail  now will be sent only for success orders.
 - Send order invoice e-mail.
 

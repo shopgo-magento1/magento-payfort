@@ -9,7 +9,12 @@ class Payfort_Pay_Block_Note extends Mage_Adminhtml_Block_System_Config_Form_Fie
 				return '<a href="http://www.payfort.com/contact-us/" target="_blank">Contact Us</a>';
                 break;
                 case 'host_to_host_url':
-                return Mage::getBaseUrl() . 'payfort/payment/response/';
+                    $defaultStoreId = Mage::app()
+                            ->getWebsite(true)
+                            ->getDefaultGroup()
+                            ->getDefaultStoreId();
+
+                return  Mage::app()->getStore($defaultStoreId)->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK). 'payfort/payment/response/';
                 break;
 			break;
 			// case 'how_to_test':
